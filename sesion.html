@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinKage</title>
+  <link rel="icon" type="image/png" href="img/LinKageLogo.png">
+  <link rel="stylesheet" href="css/sesion.css">
+</head>
+
+<body>
+  <!-- Intro animación -->
+  <div class="intro">
+    <img src="img/LinKageLogo.png" alt="LinKage Logo" class="intro-logo">
+  </div>
+
+  <!-- Barra lateral estilo principal -->
+  <aside class="sidebar-login">
+    <!-- Logo oficial y título -->
+    <div class="logo-section">
+      <img src="img/LinKageLogo.png" alt="LinKage Logo" class="site-logo">
+      <h1>LinKage</h1>
+    </div>
+
+    <!-- Menú de navegación -->
+    <nav class="menu">
+      <a href="#" class="active">Inicio</a>
+      <a href="#">Sobre Nosotros</a>
+      <a href="terminos.html">Términos y Condiciones</a>
+      <a href="#" id="faq-link">FAQ</a>
+    </nav>
+
+    <!-- Footer profesional -->
+    <footer class="sidebar-footer">
+      <div class="footer-content">
+        <p>&copy; 2025 LinKage</p>
+        <p class="footer-tagline">Conectando personas, creando oportunidades</p>
+      </div>
+    </footer>
+  </aside>
+
+  <!-- Contenedor principal -->
+  <main class="login-container">
+    <!-- Formulario de inicio de sesión -->
+    <form class="login-form" id="loginForm">
+      <h2>Iniciar Sesión</h2>
+      <div class="input-group">
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" placeholder="Ingresa tu usuario" required>
+      </div>
+      <div class="input-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+      </div>
+      <button type="submit">Ingresar</button>
+      <p class="register-text">¿No tienes cuenta? <a href="#" id="goRegister">Regístrate aquí</a></p>
+    </form>
+
+    <!-- Formulario de registro (oculto al inicio) -->
+    <form class="register-form hidden" id="registerForm">
+      <h2>Crear Cuenta</h2>
+      <div class="input-group">
+        <label for="nuevoUsuario">Usuario</label>
+        <input type="text" id="nuevoUsuario" placeholder="Crea tu usuario" required>
+      </div>
+      <div class="input-group">
+        <label for="nuevoEmail">Correo electrónico</label>
+        <input type="email" id="nuevoEmail" placeholder="example@email.com" required>
+      </div>
+      <div class="input-group">
+        <label for="nuevoPassword">Contraseña</label>
+        <input type="password" id="nuevoPassword" placeholder="Crea una contraseña" required>
+      </div>
+      <button type="submit">Registrar</button>
+      <p class="register-text">¿Ya tienes cuenta? <a href="#" id="goLogin">Inicia sesión</a></p>
+    </form>
+  </main>
+
+  <!-- Modal FAQ (oculto inicialmente) -->
+  <div class="faq-modal hidden" id="faqModal">
+    <div class="faq-content">
+      <div class="faq-header">
+        <h2>Preguntas Frecuentes</h2>
+        <button class="close-faq">&times;</button>
+      </div>
+      
+      <div class="faq-section">
+        <h3>Preguntas de la Empresa</h3>
+        <div class="faq-item">
+          <h4>¿Qué es LinKage?</h4>
+          <p>LinKage es una red social innovadora que combina las mejores características de Tinder, Twitter y Discord para crear conexiones significativas.</p>
+        </div>
+        <div class="faq-item">
+          <h4>¿Es gratuito?</h4>
+          <p>Sí, LinKage es completamente gratuito. Creemos en conectar personas sin barreras económicas.</p>
+        </div>
+        <div class="faq-item">
+          <h4>¿Cómo protegen mi privacidad?</h4>
+          <p>Tu privacidad es nuestra prioridad. Usamos encriptación de última generación y nunca compartimos tus datos con terceros.</p>
+        </div>
+      </div>
+
+      <div class="faq-section">
+        <h3>¿Tienes alguna pregunta?</h3>
+        <p class="faq-description">Envía tu pregunta de forma anónima y nuestro equipo te responderá pronto.</p>
+        <form class="question-form" id="questionForm">
+          <textarea placeholder="Escribe tu pregunta aquí..." maxlength="500" required></textarea>
+          <button type="submit">Enviar Pregunta</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Sobre Nosotros -->
+<div class="about-modal hidden" id="aboutModal">
+  <div class="about-content">
+    <div class="about-header">
+      <h2>Sobre Nosotros</h2>
+      <button class="close-about">&times;</button>
+    </div>
+    
+    <div class="about-body">
+      <div class="about-intro">
+        <p class="lead-text">Somos una empresa independiente dedicada a crear experiencias digitales únicas que conectan a las personas de manera significativa.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>Nuestra Misión</h3>
+        <p>Nuestra misión es facilitar la búsqueda de conexiones auténticas, combinando lo mejor de las redes sociales, la interacción instantánea y la compatibilidad entre usuarios.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>El Cliente es Prioridad</h3>
+        <p>En nuestra plataforma, el cliente siempre es prioridad: escuchamos tu feedback para mejorar continuamente la experiencia y asegurarnos de que cada interacción sea segura, divertida y relevante.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>Tecnología y Desarrollo</h3>
+        <p>Esta página web ha sido desarrollada cuidadosamente utilizando <strong>HTML5, JavaScript y CSS</strong>, asegurando un diseño moderno, dinámico y totalmente funcional. Cada detalle ha sido pensado para que navegar, conectar y compartir sea tan intuitivo como disfrutar de la interacción social en el mundo real.</p>
+      </div>
+
+      <div class="tech-stack">
+        <div class="tech-item">
+          <span class="tech-icon">⚡</span>
+          <span>HTML5</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-icon">🎨</span>
+          <span>CSS3</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-icon">🚀</span>
+          <span>JavaScript</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="js/sesion.js"></script>
+</body>
+</html>

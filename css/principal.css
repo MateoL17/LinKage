@@ -1,0 +1,377 @@
+/* Paleta base */
+:root {
+  --morado: #9b5de5;
+  --morado-claro: #d0aaff;
+  --negro: #1a1a1a;
+  --gris-oscuro: #2b2b2b;
+  --texto: #f5f5f5;
+}
+
+/* Estructura general */
+body {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--negro), var(--gris-oscuro));
+  font-family: 'Poppins', sans-serif;
+  color: var(--texto);
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.4);
+  position: relative;
+}
+
+/* Logo Section Centrada */
+.logo-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.logo-section img.site-logo {
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+}
+
+.logo-section h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: var(--texto);
+  font-weight: 600;
+  background: linear-gradient(45deg, var(--morado), var(--morado-claro));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Avatar del usuario centrado */
+.user-avatar {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.user-avatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid var(--morado);
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.3s ease, border 0.3s ease;
+}
+
+.user-avatar img:hover {
+  transform: scale(1.05);
+  border-color: var(--morado-claro);
+}
+
+/* Menú de navegación */
+.menu {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.menu a {
+  display: block;
+  color: var(--texto);
+  text-decoration: none;
+  padding: 12px 0;
+  transition: 0.3s;
+  border-left: 3px solid transparent;
+  font-size: 14px;
+  padding-left: 15px;
+}
+
+.menu a:hover, .menu a.active {
+  color: var(--morado-claro);
+  border-left: 3px solid var(--morado);
+  background-color: rgba(155, 93, 229, 0.1);
+  transform: translateX(5px);
+}
+
+.logout {
+  color: #f55;
+  margin-top: auto;
+}
+
+.logout:hover {
+  color: #ff7777;
+  border-left: 3px solid #f55 !important;
+  background-color: rgba(255, 85, 85, 0.1) !important;
+}
+
+/* ---- Contenido principal ---- */
+.main-content {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Feed tipo Twitter */
+.feed {
+  margin-bottom: 40px;
+}
+
+.create-post {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--morado);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.create-post textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--texto);
+  resize: none;
+  font-size: 14px;
+  outline: none;
+}
+
+.create-post button {
+  background-color: var(--morado);
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.create-post button:hover {
+  background-color: #7b39d1;
+}
+
+/* Publicaciones */
+.post {
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--gris-oscuro);
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 15px;
+}
+
+.post .avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+/* ---- Descubrir (tipo Tinder) ---- */
+.discover {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--gris-oscuro);
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.discover h2 {
+  color: var(--morado-claro);
+  margin-bottom: 15px;
+}
+
+.profile-card {
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.profile-card img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid var(--morado);
+}
+
+.buttons {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.buttons button {
+  font-size: 20px;
+  padding: 10px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.like {
+  background-color: var(--morado);
+  color: white;
+}
+
+.dislike {
+  background-color: #333;
+  color: #f55;
+}
+
+.like:hover {
+  background-color: #7b39d1;
+}
+
+.dislike:hover {
+  background-color: #f55;
+  color: white;
+}
+
+/* ---- Panel de chat tipo Discord ---- */
+.chat-panel {
+  background-color: #111;
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px;
+}
+
+.chat-panel h2 {
+  color: var(--morado-claro);
+  margin: 0 0 10px;
+}
+
+.chat-box {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.message {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.send-message {
+  display: flex;
+  gap: 5px;
+}
+
+.send-message input {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  background-color: #222;
+  color: var(--texto);
+}
+
+.send-message button {
+  background-color: var(--morado);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.send-message button:hover {
+  background-color: #7b39d1;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--morado);
+  border-radius: 4px;
+}
+
+/* ---- Imagen de perfil predeterminada ---- */
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--morado);
+  object-fit: cover;
+}
+
+/* Imagen de perfil más grande en tarjetas tipo Tinder */
+.profile-card img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--morado);
+}
+
+/* Asegura que el área de crear publicación se vea centrada */
+.create-post {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+/* Efecto hover sobre los posts */
+.post:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  transition: background 0.3s ease;
+}
+
+/* Indicador visual para avatars editables */
+.user-avatar img[style*="cursor: pointer"],
+.create-post .avatar[style*="cursor: pointer"] {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.user-avatar img[style*="cursor: pointer"]:hover::after,
+.create-post .avatar[style*="cursor: pointer"]:hover::after {
+  content: "🖊️ Cambiar foto";
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* Efecto hover más evidente para avatars editables */
+.user-avatar img:hover,
+.create-post .avatar:hover {
+  border-color: var(--morado-claro);
+  box-shadow: 0 0 15px rgba(155, 93, 229, 0.6);
+  transform: scale(1.05);
+}
+
+/* Los avatars no editables no tienen efectos especiales */
+.post .avatar {
+  cursor: default !important;
+  border-color: var(--morado);
+}
+
+.post .avatar:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: var(--morado) !important;
+}

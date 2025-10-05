@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinKage - Red Social</title>
+  <link rel="icon" type="image/png" href="img/LinKageLogo.png">
+  <link rel="stylesheet" href="css/principal.css">
+</head>
+
+<body>
+  <!-- Barra lateral izquierda -->
+  <aside class="sidebar">
+    <!-- Logo oficial y título en la parte superior -->
+    <div class="logo-section">
+      <img src="img/LinKageLogo.png" alt="LinKage Logo" class="site-logo">
+      <h1>LinKage</h1>
+    </div>
+
+    <!-- Avatar del usuario -->
+    <div class="user-avatar">
+      <img src="img/perfil_default.png" alt="Tu perfil" class="logoMain">
+    </div>
+
+    <!-- Menú de navegación -->
+    <nav class="menu">
+      <a href="#" class="active">Inicio</a>
+      <a href="#">Mensajes</a>
+      <a href="#">Perfiles</a>
+      <a href="#">Notificaciones</a>
+      <a href="#">Configuración</a>
+      <a href="sesion.html" class="logout">Cerrar sesión</a>
+    </nav>
+  </aside>
+
+  <!-- El resto de tu contenido permanece igual -->
+  <main class="main-content">
+    <!-- Sección tipo "Twitter" -->
+    <section class="feed">
+      <div class="create-post">
+        <img src="img/perfil_ejemplo.png" alt="Perfil" class="avatar">
+        <textarea placeholder="¿Qué estás pensando, hoy?" maxlength="200"></textarea>
+        <button>Publicar</button>
+      </div>
+
+      <div class="post">
+        <img src="img/perfil_default.jpg" alt="Perfil" class="avatar">
+        <div class="post-content">
+          <h3>@mateolink</h3>
+          <p>¡Bienvenido a LinKage! 🎉 Una nueva forma de conectar y chatear 🔗</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección tipo "Tinder" / sugerencias -->
+    <section class="discover">
+      <h2>Descubre nuevas conexiones</h2>
+      <div class="profile-card">
+        <img src="img/perfil_default.png" alt="Perfil">
+        <h3>Alex Rivera, 22</h3>
+        <p>Amante de la música y los videojuegos 🎮</p>
+        <div class="buttons">
+          <button class="dislike">✖</button>
+          <button class="like">❤</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Panel de chat tipo Discord -->
+  <aside class="chat-panel">
+    <h2>Chat</h2>
+    <div class="chat-box">
+      <div class="message">
+        <strong>@sofiadev:</strong> ¡Hola! 👋
+      </div>
+      <div class="message">
+        <strong>@mateolink:</strong> ¡Hey! ¿Cómo va todo?
+      </div>
+    </div>
+    <div class="send-message">
+      <input type="text" placeholder="Escribe un mensaje...">
+      <button>Enviar</button>
+    </div>
+  </aside>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const usuarioActivo = localStorage.getItem("usuarioActivo");
+    if (usuarioActivo) {
+      console.log(`👤 Sesión activa: ${usuarioActivo}`);
+    } else {
+      // Si no hay usuario logueado, redirigir al inicio de sesión
+      window.location.href = "sesion.html";
+    }
+  });
+  </script>
+
+  <script src="js/principal.js"></script>
+</body>
+</html>
