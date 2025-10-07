@@ -6,12 +6,14 @@
   <title>LinKage - Red Social</title>
   <link rel="icon" type="image/png" href="img/LinKageLogo.png">
   <link rel="stylesheet" href="css/principal.css">
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 
 <body>
   <!-- Barra lateral izquierda -->
   <aside class="sidebar">
-    <!-- Logo oficial y título en la parte superior -->
+    <!-- Logo oficial y título -->
     <div class="logo-section">
       <img src="img/LinKageLogo.png" alt="LinKage Logo" class="site-logo">
       <h1>LinKage</h1>
@@ -19,7 +21,7 @@
 
     <!-- Avatar del usuario -->
     <div class="user-avatar">
-      <img src="img/perfil_default.png" alt="Tu perfil" class="logoMain">
+      <img src="img/perfil_default.png" alt="Usuario" class="logoMain">
     </div>
 
     <!-- Menú de navegación -->
@@ -33,23 +35,17 @@
     </nav>
   </aside>
 
-  <!-- El resto de tu contenido permanece igual -->
+  <!-- Contenedor principal -->
   <main class="main-content">
     <!-- Sección tipo "Twitter" -->
     <section class="feed">
       <div class="create-post">
-        <img src="img/perfil_ejemplo.png" alt="Perfil" class="avatar">
+        <img src="img/perfil_default.png" alt="Perfil" class="avatar">
         <textarea placeholder="¿Qué estás pensando, hoy?" maxlength="200"></textarea>
         <button>Publicar</button>
       </div>
 
-      <div class="post">
-        <img src="img/perfil_default.jpg" alt="Perfil" class="avatar">
-        <div class="post-content">
-          <h3>@mateolink</h3>
-          <p>¡Bienvenido a LinKage! 🎉 Una nueva forma de conectar y chatear 🔗</p>
-        </div>
-      </div>
+      <!-- Los posts se cargarán dinámicamente aquí -->
     </section>
 
     <!-- Sección tipo "Tinder" / sugerencias -->
@@ -83,18 +79,6 @@
       <button>Enviar</button>
     </div>
   </aside>
-
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const usuarioActivo = localStorage.getItem("usuarioActivo");
-    if (usuarioActivo) {
-      console.log(`👤 Sesión activa: ${usuarioActivo}`);
-    } else {
-      // Si no hay usuario logueado, redirigir al inicio de sesión
-      window.location.href = "sesion.html";
-    }
-  });
-  </script>
 
   <script src="js/principal.js"></script>
 </body>
