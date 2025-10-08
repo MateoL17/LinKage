@@ -19,24 +19,51 @@ const server = createServer(app);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Ruta raíz del proyecto (sube un nivel desde /backend)
+// Ruta raíz del proyecto (sube un nivel desde /backend)
 const projectRoot = path.join(__dirname, '..');
+
+// Configuración CORS para múltiples orígenes
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://192.168.100.6:3001',
+  'http://192.168.100.6:3000',
+  'https://*.ngrok.io', // Para ngrok
+  'http://*.ngrok.io'   // Para ngrok HTTP
+];
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-// Middleware
-app.use(cors());
+// Middleware CORS mejorado
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (como mobile apps o Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.some(allowed => origin === allowed || origin.startsWith('https://') && allowed.includes('ngrok.io'))) {
+      callback(null, true);
+    } else {
+      console.log('🚫 Origen bloqueado por CORS:', origin);
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
-// ✅ SERVIR ARCHIVOS ESTÁTICOS DESDE LA CARPETA RAIZ DEL PROYECTO
+// SERVIR ARCHIVOS ESTÁTICOS DESDE LA CARPETA RAIZ DEL PROYECTO
 app.use(express.static(projectRoot));
 
-// ✅ SERVIR ARCHIVOS ESTÁTICOS ESPECÍFICOS
+// SERVIR ARCHIVOS ESTÁTICOS ESPECÍFICOS
 app.use('/css', express.static(path.join(projectRoot, 'css')));
 app.use('/js', express.static(path.join(projectRoot, 'js')));
 app.use('/img', express.static(path.join(projectRoot, 'img')));
@@ -335,17 +362,36 @@ app.get('/api/usuarios', authenticateToken, async (req, res) => {
   }
 });
 
+// Ruta de información del servidor
+app.get('/api/info', (req, res) => {
+  res.json({
+    status: 'online',
+    server: 'Linkage Backend',
+    clientIp: req.ip,
+    clientHost: req.get('host'),
+    timestamp: new Date().toISOString(),
+    accessPoints: [
+      'http://localhost:3001',
+      'http://192.168.100.6:3001'
+    ],
+    cors: {
+      allowedOrigins: allowedOrigins
+    }
+  });
+});
+
 // Ruta de salud para probar el servidor
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Servidor Linkage funcionando',
     database: 'LinKage',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.APP_ENV || 'development'
   });
 });
 
-// ✅ RUTAS PARA LAS PÁGINAS HTML (desde la carpeta raíz del proyecto)
+// RUTAS PARA LAS PÁGINAS HTML (desde la carpeta raíz del proyecto)
 // Redirigir la raíz a sesion.html
 app.get('/', (req, res) => {
   res.redirect('/sesion');
@@ -409,10 +455,21 @@ app.use('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`🚀 Servidor Linkage ejecutándose en http://localhost:${PORT}`);
-  console.log(`📁 Sirviendo archivos desde: ${projectRoot}`);
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+  console.log('='.repeat(50));
+  console.log('🚀 SERVVIDOR LINKAGE INICIADO');
+  console.log('='.repeat(50));
+  console.log(`📍 Local: http://localhost:${PORT}`);
+  console.log(`📱 Red Local: http://192.168.100.6:${PORT}`);
+  console.log(`🌐 Externo: http://0.0.0.0:${PORT}`);
   console.log(`📊 MongoDB: ${MONGODB_URI}`);
   console.log(`🔑 JWT Secret: ${process.env.JWT_SECRET ? 'Configurado' : 'Usando valor por defecto'}`);
-  console.log(`📍 Iniciando siempre en: http://localhost:${PORT}/sesion`);
+  console.log(`🔄 Entorno: ${process.env.APP_ENV || 'development'}`);
+  console.log('='.repeat(50));
+  console.log('💡 Para acceder desde tu celular:');
+  console.log(`   1. Conecta a la misma WiFi`);
+  console.log(`   2. Ve a: http://192.168.100.6:${PORT}`);
+  console.log('='.repeat(50));
 });

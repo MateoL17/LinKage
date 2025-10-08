@@ -9,7 +9,10 @@
     "dev": "nodemon server.js",
     "install-deps": "npm install express mongoose cors bcryptjs jsonwebtoken socket.io dotenv multer",
     "install-dev": "npm install -D nodemon",
-    "setup": "npm run install-deps && npm run install-dev"
+    "setup": "npm run install-deps && npm run install-dev",
+    "ngrok": "ngrok http 3001",
+    "dev-with-ngrok": "npm run dev & npm run ngrok",
+    "test-api": "node test-connection.js"
   },
   "keywords": [
     "social",
@@ -17,7 +20,8 @@
     "mongodb",
     "express",
     "socket.io",
-    "jwt"
+    "jwt",
+    "realtime"
   ],
   "author": "Tu Nombre",
   "license": "MIT",
@@ -29,12 +33,20 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.1",
     "multer": "^1.4.5-lts.1",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.1.10"
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MateoL17/LinKage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MateoL17/LinKage/issues"
+  },
+  "homepage": "https://github.com/MateoL17/LinKage#readme"
 }

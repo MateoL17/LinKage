@@ -963,7 +963,6 @@ button:hover {
   left: 100%;
 }
 
-/* Animación para el contenedor principal */
 .login-container {
   position: relative;
   min-height: 400px;
@@ -998,7 +997,7 @@ button:hover {
   border: 1px solid #9b5de5;
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 60%;
   transform: translate(-50%, -50%);
 }
 
@@ -1080,7 +1079,7 @@ button:hover {
 
 /* Ajuste específico para formulario de registro */
 .register-form {
-  width: 350px;
+  width: 360px;
 }
 
 .register-form .input-group input {
@@ -1512,4 +1511,57 @@ body {
   .terms-list {
     color: #333 !important;
   }
+}
+
+/* ------------------ ESTILOS PARA MODALES FUNCIONALES ------------------ */
+.faq-modal, .about-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.faq-modal.hidden, .about-modal.hidden {
+  display: none;
+}
+
+.faq-content, .about-content {
+  background: linear-gradient(135deg, #1a1a1a, #2b2b2b);
+  border: 1px solid #9b5de5;
+  border-radius: 16px;
+  padding: 30px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Contenedor principal corregido */
+.main-container {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 100vh;
+  padding-left: 100px;
+  box-sizing: border-box;
+}
+
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }

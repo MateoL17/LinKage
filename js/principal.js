@@ -1,5 +1,31 @@
-const API_URL = 'http://localhost:3001/api';
+// ✅ FUNCIÓN MEJORADA PARA DETECTAR API URL DINÁMICAMENTE
+function getApiUrl() {
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  // Si estamos en localhost
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:3001/api';
+  }
+  // Si estamos en la IP local
+  else if (hostname === '192.168.100.6') {
+    return 'http://192.168.100.6:3001/api';
+  }
+  // Si estamos en ngrok o dominio externo
+  else if (hostname.includes('ngrok.io') || hostname.includes('localhost.run')) {
+    return `${protocol}//${hostname}/api`;
+  }
+  // Por defecto, usar el mismo host
+  else {
+    return `${protocol}//${hostname}:3001/api`;
+  }
+}
+
+const API_URL = getApiUrl();
 let socket;
+
+console.log('🔗 API URL:', API_URL);
+console.log('📍 Hostname:', window.location.hostname);
 
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem('token');
@@ -64,9 +90,23 @@ async function cargarDatosUsuario(usuario) {
   }
 }
 
-// Función para conectar WebSocket
+// ✅ FUNCIÓN MEJORADA PARA CONECTAR WEBSOCKET
 function conectarWebSocket(usuario) {
-  socket = io('http://localhost:3001');
+  // Determinar la URL del WebSocket dinámicamente
+  let socketUrl = 'http://localhost:3001';
+  const hostname = window.location.hostname;
+  
+  if (hostname === '192.168.100.6') {
+    socketUrl = 'http://192.168.100.6:3001';
+  } else if (hostname.includes('ngrok.io')) {
+    socketUrl = `https://${hostname}`;
+  }
+
+  console.log('🔌 Conectando WebSocket a:', socketUrl);
+  
+  socket = io(socketUrl, {
+    transports: ['websocket', 'polling']
+  });
   
   // Unirse a la sala del usuario
   socket.emit('unirseSala', usuario);
@@ -87,6 +127,10 @@ function conectarWebSocket(usuario) {
 
   socket.on('disconnect', () => {
     console.log('❌ Desconectado del servidor WebSocket');
+  });
+
+  socket.on('connect_error', (error) => {
+    console.error('❌ Error conectando WebSocket:', error);
   });
 }
 
