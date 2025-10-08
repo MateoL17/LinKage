@@ -23,12 +23,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   configurarEventos();
 });
 
-// Función para cargar datos del usuario en la barra lateral
+// ✅ FUNCIÓN MEJORADA PARA CARGAR DATOS DEL USUARIO
 async function cargarDatosUsuario(usuario) {
-  const avatarSidebar = document.querySelector('.user-avatar img');
-  if (avatarSidebar) {
-    avatarSidebar.src = usuario.foto || 'img/perfil_default.png';
-    avatarSidebar.alt = usuario.usuario;
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/perfil`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const perfil = await response.json();
+      
+      // Actualizar localStorage con datos actualizados
+      localStorage.setItem('usuarioActivo', JSON.stringify(perfil));
+      
+      // Actualizar interfaz
+      const avatarSidebar = document.querySelector('.user-avatar img');
+      if (avatarSidebar) {
+        avatarSidebar.src = perfil.foto || 'img/perfil_default.png';
+        avatarSidebar.alt = perfil.usuario;
+      }
+
+      const avatarCreatePost = document.querySelector('.create-post .avatar');
+      if (avatarCreatePost) {
+        avatarCreatePost.src = perfil.foto || 'img/perfil_default.png';
+      }
+
+      return perfil;
+    }
+  } catch (error) {
+    console.error('Error cargando perfil:', error);
+    // Usar datos de localStorage como fallback
+    const avatarSidebar = document.querySelector('.user-avatar img');
+    if (avatarSidebar) {
+      avatarSidebar.src = usuario.foto || 'img/perfil_default.png';
+      avatarSidebar.alt = usuario.usuario;
+    }
   }
 }
 
@@ -225,11 +257,11 @@ function configurarEventos() {
     });
   }
 
-  // Configurar cambio de avatar (si lo tienes)
+  // Configurar cambio de avatar
   configurarCambioAvatar();
 }
 
-// Función para configurar cambio de avatar
+// ✅ FUNCIÓN MEJORADA PARA CONFIGURAR CAMBIO DE AVATAR
 function configurarCambioAvatar() {
   const avatarImgs = document.querySelectorAll('.user-avatar img, .create-post .avatar');
   const uploadInput = document.createElement('input');
@@ -240,8 +272,8 @@ function configurarCambioAvatar() {
 
   avatarImgs.forEach(img => {
     img.style.cursor = 'pointer';
+    img.title = 'Haz clic para cambiar tu avatar';
     img.addEventListener('click', () => {
-      // Por ahora solo abre el selector, luego implementas la subida
       uploadInput.click();
     });
   });
@@ -250,8 +282,100 @@ function configurarCambioAvatar() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Aquí puedes implementar la subida de imagen al backend
-    alert('Función de cambio de avatar en desarrollo. Por ahora usa la imagen por defecto.');
+    // ✅ IMPLEMENTACIÓN COMPLETA DEL CAMBIO DE AVATAR
+    await cambiarAvatar(file);
+  });
+}
+
+// ✅ FUNCIÓN PARA CAMBIAR AVATAR
+async function cambiarAvatar(file) {
+  try {
+    const token = localStorage.getItem('token');
+    const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
+    
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecciona una imagen válida.');
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen es demasiado grande. Máximo 5MB.');
+      return;
+    }
+
+    // Mostrar indicador de carga
+    const avatarImgs = document.querySelectorAll('.user-avatar img, .create-post .avatar');
+    avatarImgs.forEach(img => {
+      img.style.opacity = '0.5';
+    });
+
+    // Crear FormData para enviar el archivo
+    const formData = new FormData();
+    formData.append('foto', file);
+
+    // Enviar al servidor
+    const response = await fetch(`${API_URL}/upload/foto`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Actualizar en localStorage
+      usuarioActivo.foto = data.foto;
+      localStorage.setItem('usuarioActivo', JSON.stringify(usuarioActivo));
+      
+      // Actualizar todas las imágenes de perfil en la interfaz
+      actualizarAvataresEnInterfaz(data.foto);
+      
+      alert('¡Avatar actualizado exitosamente!');
+    } else {
+      alert('Error: ' + (data.error || 'No se pudo cambiar el avatar'));
+    }
+
+  } catch (error) {
+    console.error('Error cambiando avatar:', error);
+    alert('Error al cambiar el avatar. Intenta nuevamente.');
+  } finally {
+    // Restaurar opacidad
+    const avatarImgs = document.querySelectorAll('.user-avatar img, .create-post .avatar');
+    avatarImgs.forEach(img => {
+      img.style.opacity = '1';
+    });
+  }
+}
+
+// ✅ FUNCIÓN PARA ACTUALIZAR AVATARES EN LA INTERFAZ
+function actualizarAvataresEnInterfaz(nuevaFotoUrl) {
+  // Actualizar en la barra lateral
+  const avatarSidebar = document.querySelector('.user-avatar img');
+  if (avatarSidebar) {
+    avatarSidebar.src = nuevaFotoUrl;
+  }
+
+  // Actualizar en el área de crear post
+  const avatarCreatePost = document.querySelector('.create-post .avatar');
+  if (avatarCreatePost) {
+    avatarCreatePost.src = nuevaFotoUrl;
+  }
+
+  // Actualizar en posts existentes del usuario actual
+  const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
+  const postsUsuario = document.querySelectorAll('.post');
+  postsUsuario.forEach(post => {
+    const usernameElement = post.querySelector('h3');
+    if (usernameElement && usernameElement.textContent === `@${usuarioActivo.usuario}`) {
+      const avatarPost = post.querySelector('.avatar');
+      if (avatarPost) {
+        avatarPost.src = nuevaFotoUrl;
+      }
+    }
   });
 }
 

@@ -6,11 +6,22 @@ import jwt from 'jsonwebtoken';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
+// Solución para __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ✅ Ruta raíz del proyecto (sube un nivel desde /backend)
+const projectRoot = path.join(__dirname, '..');
+
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -21,6 +32,14 @@ const io = new Server(server, {
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// ✅ SERVIR ARCHIVOS ESTÁTICOS DESDE LA CARPETA RAIZ DEL PROYECTO
+app.use(express.static(projectRoot));
+
+// ✅ SERVIR ARCHIVOS ESTÁTICOS ESPECÍFICOS
+app.use('/css', express.static(path.join(projectRoot, 'css')));
+app.use('/js', express.static(path.join(projectRoot, 'js')));
+app.use('/img', express.static(path.join(projectRoot, 'img')));
 
 // Conexión a MongoDB Local - BASE DE DATOS: LinKage
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/LinKage';
@@ -176,6 +195,79 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Routes - Perfil
+app.get('/api/perfil', authenticateToken, async (req, res) => {
+  try {
+    const usuario = await User.findOne(
+      { usuario: req.user.usuario },
+      'usuario email foto fechaRegistro'
+    );
+    
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json(usuario);
+  } catch (error) {
+    console.error('Error obteniendo perfil:', error);
+    res.status(500).json({ error: 'Error obteniendo perfil' });
+  }
+});
+
+// Configuración de multer para subir archivos
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(projectRoot, 'img/uploads/'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + req.user.usuario + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB límite
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten imágenes'), false);
+    }
+  }
+});
+
+// Ruta para subir foto de perfil
+app.post('/api/upload/foto', authenticateToken, upload.single('foto'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se subió ninguna imagen' });
+    }
+
+    const fotoUrl = '/img/uploads/' + req.file.filename;
+
+    const usuarioActualizado = await User.findOneAndUpdate(
+      { usuario: req.user.usuario },
+      { foto: fotoUrl },
+      { new: true }
+    );
+
+    res.json({
+      mensaje: 'Foto subida exitosamente',
+      foto: fotoUrl,
+      usuario: {
+        usuario: usuarioActualizado.usuario,
+        email: usuarioActualizado.email,
+        foto: usuarioActualizado.foto
+      }
+    });
+
+  } catch (error) {
+    console.error('Error subiendo foto:', error);
+    res.status(500).json({ error: 'Error subiendo foto' });
+  }
+});
+
 // Routes - Posts
 app.get('/api/posts', authenticateToken, async (req, res) => {
   try {
@@ -243,6 +335,34 @@ app.get('/api/usuarios', authenticateToken, async (req, res) => {
   }
 });
 
+// Ruta de salud para probar el servidor
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Servidor Linkage funcionando',
+    database: 'LinKage',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ✅ RUTAS PARA LAS PÁGINAS HTML (desde la carpeta raíz del proyecto)
+// Redirigir la raíz a sesion.html
+app.get('/', (req, res) => {
+  res.redirect('/sesion');
+});
+
+app.get('/sesion', (req, res) => {
+  res.sendFile(path.join(projectRoot, 'sesion.html'));
+});
+
+app.get('/principal', (req, res) => {
+  res.sendFile(path.join(projectRoot, 'principal.html'));
+});
+
+app.get('/terminos', (req, res) => {
+  res.sendFile(path.join(projectRoot, 'terminos.html'));
+});
+
 // WebSocket para chat en vivo
 io.on('connection', (socket) => {
   console.log('🔌 Usuario conectado:', socket.id);
@@ -283,16 +403,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Ruta de salud para probar el servidor
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Servidor Linkage funcionando',
-    database: 'LinKage',
-    timestamp: new Date().toISOString()
-  });
-});
-
 // Manejo de rutas no encontradas
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
@@ -301,6 +411,8 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`🚀 Servidor Linkage ejecutándose en http://localhost:${PORT}`);
+  console.log(`📁 Sirviendo archivos desde: ${projectRoot}`);
   console.log(`📊 MongoDB: ${MONGODB_URI}`);
   console.log(`🔑 JWT Secret: ${process.env.JWT_SECRET ? 'Configurado' : 'Usando valor por defecto'}`);
+  console.log(`📍 Iniciando siempre en: http://localhost:${PORT}/sesion`);
 });
