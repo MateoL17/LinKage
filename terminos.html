@@ -20,7 +20,9 @@
     <!-- Menú de navegación -->
     <nav class="menu">
       <a href="/sesion.html">Inicio</a>
+      <a href="/about.html">Sobre Nosotros</a>
       <a href="#" class="active">Términos y Condiciones</a>
+      <a href="/faq.html">FAQ</a>
     </nav>
 
     <!-- Footer profesional -->
@@ -104,7 +106,14 @@
 
         <div class="terms-actions">
           <button onclick="window.location.href='sesion.html'" class="back-btn">Volver al Inicio</button>
-          <button onclick="window.print()" class="print-btn">Imprimir Términos</button>
+          <button class="btn btn-imprimir" onclick="window.print()">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9L6 2H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Imprimir Términos
+            </button>
         </div>
       </div>
     </div>

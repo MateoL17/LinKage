@@ -394,7 +394,7 @@ app.get('/api/health', (req, res) => {
 // RUTAS PARA LAS PÁGINAS HTML (desde la carpeta raíz del proyecto)
 // Redirigir la raíz a sesion.html
 app.get('/', (req, res) => {
-  res.redirect('/sesion');
+  res.sendFile(path.join(projectRoot, 'sesion.html'));
 });
 
 app.get('/sesion', (req, res) => {
@@ -459,17 +459,12 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 server.listen(PORT, HOST, () => {
   console.log('='.repeat(50));
-  console.log('🚀 SERVVIDOR LINKAGE INICIADO');
+  console.log('🚀 SERVIDOR LINKAGE INICIADO');
   console.log('='.repeat(50));
   console.log(`📍 Local: http://localhost:${PORT}`);
   console.log(`📱 Red Local: http://192.168.100.6:${PORT}`);
-  console.log(`🌐 Externo: http://0.0.0.0:${PORT}`);
   console.log(`📊 MongoDB: ${MONGODB_URI}`);
   console.log(`🔑 JWT Secret: ${process.env.JWT_SECRET ? 'Configurado' : 'Usando valor por defecto'}`);
   console.log(`🔄 Entorno: ${process.env.APP_ENV || 'development'}`);
-  console.log('='.repeat(50));
-  console.log('💡 Para acceder desde tu celular:');
-  console.log(`   1. Conecta a la misma WiFi`);
-  console.log(`   2. Ve a: http://192.168.100.6:${PORT}`);
   console.log('='.repeat(50));
 });
