@@ -10,9 +10,10 @@
     "install-deps": "npm install express mongoose cors bcryptjs jsonwebtoken socket.io dotenv multer",
     "install-dev": "npm install -D nodemon",
     "setup": "npm run install-deps && npm run install-dev",
-    "ngrok": "ngrok http 3001",
-    "dev-with-ngrok": "npm run dev & npm run ngrok",
-    "test-api": "node test-connection.js"
+    "ngrok": "node ngrok-setup.js",
+    "dev-with-ngrok": "concurrently \"npm run dev\" \"npm run ngrok\"",
+    "test-api": "node test-connection.js",
+    "start-all": "concurrently \"npm run dev\" \"sleep 3 && npm run ngrok\""
   },
   "keywords": [
     "social",
@@ -23,7 +24,7 @@
     "jwt",
     "realtime"
   ],
-  "author": "Tu Nombre",
+  "author": "Mateo Lasso",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -33,9 +34,11 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.1",
     "multer": "^1.4.5-lts.1",
+    "ngrok": "^5.0.0-beta.2",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "concurrently": "^7.6.0",
     "nodemon": "^3.1.10"
   },
   "engines": {

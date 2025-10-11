@@ -6,7 +6,6 @@
   <title>LinKage - Red Social</title>
   <link rel="icon" type="image/png" href="/img/LinKageLogo.png">
   <link rel="stylesheet" href="/css/principal.css">
-
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 
@@ -22,56 +21,192 @@
     <!-- Avatar del usuario -->
     <div class="user-avatar">
       <img src="/img/perfil_default.png" alt="Usuario" class="logoMain">
+      <div class="user-info">
+        <span class="username">@usuario</span> <!-- Este es el elemento que se debe actualizar -->
+      </div>
     </div>
 
     <!-- Menú de navegación -->
     <nav class="menu">
-      <a href="#" class="active">Inicio</a>
-      <a href="#">Mensajes</a>
-      <a href="#">Perfiles</a>
-      <a href="#">Notificaciones</a>
-      <a href="#">Configuración</a>
+      <a href="#" class="active" data-section="inicio">Inicio</a>
+      <a href="#" data-section="mensajes">Mensajes</a>
+      <a href="#" data-section="perfil">Perfil</a>
+      <a href="#" data-section="configuracion">Configuración</a>
       <a href="/sesion.html" class="logout">Cerrar sesión</a>
     </nav>
   </aside>
 
   <!-- Contenedor principal -->
   <main class="main-content">
-    <!-- Sección tipo "Twitter" -->
-    <section class="feed">
-      <div class="create-post">
-        <img src="/img/perfil_default.png" alt="Perfil" class="avatar">
-        <textarea placeholder="¿Qué estás pensando, hoy?" maxlength="200"></textarea>
-        <button>Publicar</button>
+    <!-- Sección Inicio (Feed principal) -->
+    <section class="content-section active" id="inicio">
+      <div class="feed">
+        <div class="create-post">
+          <img src="/img/perfil_default.png" alt="Perfil" class="avatar">
+          <textarea placeholder="¿Qué estás pensando, hoy?" maxlength="200"></textarea>
+          <button>Publicar</button>
+        </div>
+
+        <!-- Los posts se cargarán dinámicamente aquí -->
+        <div class="posts-container">
+          <!-- Posts cargados dinámicamente -->
+        </div>
       </div>
 
-      <!-- Los posts se cargarán dinámicamente aquí -->
+      <!-- Sección tipo "Tinder" / sugerencias -->
+      <section class="discover">
+        <h2>Descubre nuevas conexiones</h2>
+        <div class="profile-card">
+          <img src="/img/perfil_default.png" alt="Perfil">
+          <h3>Alex Rivera, 22</h3>
+          <p>Amante de la música y los videojuegos 🎮</p>
+          <div class="buttons">
+            <button class="dislike">✖</button>
+            <button class="like">❤</button>
+          </div>
+        </div>
+      </section>
     </section>
 
-    <!-- Sección tipo "Tinder" / sugerencias -->
-    <section class="discover">
-      <h2>Descubre nuevas conexiones</h2>
-      <div class="profile-card">
-        <img src="/img/perfil_default.png" alt="Perfil">
-        <h3>Alex Rivera, 22</h3>
-        <p>Amante de la música y los videojuegos 🎮</p>
-        <div class="buttons">
-          <button class="dislike">✖</button>
-          <button class="like">❤</button>
+    <!-- Sección Mensajes -->
+    <section class="content-section" id="mensajes">
+      <div class="messages-header">
+        <h2>Tus Conversaciones</h2>
+      </div>
+      <div class="conversations-list">
+        <!-- Lista de conversaciones -->
+        <div class="conversation">
+          <img src="/img/perfil_default.png" alt="Usuario" class="avatar">
+          <div class="conversation-info">
+            <h3>@sofiadev</h3>
+            <p>Último mensaje: ¡Hola! 👋</p>
+          </div>
+          <span class="time">12:30</span>
+        </div>
+        <div class="conversation">
+          <img src="/img/perfil_default.png" alt="Usuario" class="avatar">
+          <div class="conversation-info">
+            <h3>@mateolink</h3>
+            <p>Último mensaje: ¡Hey! ¿Cómo va todo?</p>
+          </div>
+          <span class="time">11:45</span>
         </div>
       </div>
     </section>
+
+    <!-- Sección Perfil -->
+    <section class="content-section" id="perfil">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <img src="/img/perfil_default.png" alt="Perfil" class="avatar-large">
+          <button class="edit-avatar">Cambiar Foto</button>
+        </div>
+        <div class="profile-info">
+          <h2>@usuario</h2>
+          <p class="profile-bio">Biografía del usuario...</p>
+          <div class="profile-stats">
+            <div class="stat">
+              <strong>150</strong>
+              <span>Posts</span>
+            </div>
+            <div class="stat">
+              <strong>1.2K</strong>
+              <span>Seguidores</span>
+            </div>
+            <div class="stat">
+              <strong>850</strong>
+              <span>Seguidos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="profile-posts">
+        <h3>Mis Publicaciones</h3>
+        <div class="user-posts">
+          <!-- Posts del usuario -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección Configuración -->
+    <section class="content-section" id="configuracion">
+    <div class="settings-header">
+      <h2>Configuración de Cuenta</h2>
+      <p class="settings-subtitle">Gestiona tu información personal y preferencias</p>
+    </div>
+    <div class="settings-options">
+      <div class="setting-group">
+        <h3>📝 Información Personal</h3>
+       <div class="setting-item">
+          <label>Nombre de usuario</label>
+          <input type="text" value="usuario" disabled>
+          <small class="setting-hint">El nombre de usuario no se puede cambiar</small>
+        </div>
+        <div class="setting-item">
+          <label>Email</label>
+          <input type="email" value="usuario@ejemplo.com" placeholder="tu@email.com">
+          <small class="setting-hint">Usaremos este email para notificaciones importantes</small>
+        </div>
+        <div class="setting-item">
+          <label>Biografía</label>
+          <textarea placeholder="Cuéntanos algo sobre ti..." maxlength="150">Biografía del usuario...</textarea>
+          <small class="setting-hint">Máximo 150 caracteres</small>
+        </div>
+      </div>
+    
+      <div class="setting-group">
+        <h3>🔒 Privacidad</h3>
+        <div class="setting-item checkbox">
+          <label>
+            <input type="checkbox" checked>
+            <span class="checkmark"></span>
+            Perfil público
+          </label>
+          <small class="setting-hint">Tu perfil será visible para todos los usuarios</small>
+        </div>
+        <div class="setting-item checkbox">
+          <label>
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Permitir mensajes de cualquier usuario
+          </label>
+          <small class="setting-hint">Los usuarios podrán enviarte mensajes sin ser amigos</small>
+        </div>
+      </div>
+    
+      <div class="settings-actions">
+        <button class="save-settings">
+          <span class="btn-icon">💾</span>
+          Guardar Cambios
+        </button>
+        <button class="cancel-settings" type="button">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </section>
   </main>
 
   <!-- Panel de chat tipo Discord -->
   <aside class="chat-panel">
-    <h2>Chat</h2>
+    <div class="chat-header">
+      <h2>Chat</h2>
+      <button class="toggle-chat">−</button>
+    </div>
     <div class="chat-box">
       <div class="message">
-        <strong>@sofiadev:</strong> ¡Hola! 👋
+        <img src="/img/perfil_default.png" alt="Usuario" class="avatar-small">
+        <div class="message-content">
+          <strong>@sofiadev:</strong> ¡Hola! 👋
+          <small>12:30 PM</small>
+        </div>
       </div>
       <div class="message">
-        <strong>@mateolink:</strong> ¡Hey! ¿Cómo va todo?
+        <img src="/img/perfil_default.png" alt="Usuario" class="avatar-small">
+        <div class="message-content">
+          <strong>@mateolink:</strong> ¡Hey! ¿Cómo va todo?
+          <small>12:31 PM</small>
+        </div>
       </div>
     </div>
     <div class="send-message">

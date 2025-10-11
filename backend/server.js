@@ -8,7 +8,18 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import multer from 'multer';
+
+// Importar modelos
+import User from './models/User.js';
+import Post from './models/Post.js';
+import Message from './models/Message.js';
+
+// Importar rutas
+import perfilRoutes from './routes/perfil.js';
+import uploadRoutes from './routes/upload.js';
+
+// Importar GridFS
+import { initializeGridFS } from './config/gridfs.js';
 
 dotenv.config();
 
@@ -22,94 +33,111 @@ const __dirname = path.dirname(__filename);
 // Ruta raíz del proyecto (sube un nivel desde /backend)
 const projectRoot = path.join(__dirname, '..');
 
-// Configuración CORS para múltiples orígenes
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:3001',
-  'http://192.168.100.6:3001',
-  'http://192.168.100.6:3000',
-  'https://*.ngrok.io', // Para ngrok
-  'http://*.ngrok.io'   // Para ngrok HTTP
-];
-
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
-
-// Middleware CORS mejorado
-app.use(cors({
+// =============================================
+// CONFIGURACIÓN CORS MEJORADA
+// =============================================
+const corsOptions = {
   origin: function (origin, callback) {
-    // Permitir requests sin origin (como mobile apps o Postman)
-    if (!origin) return callback(null, true);
+    // Permitir requests sin origin (como mobile apps, curl, postman)
+    if (!origin) {
+      console.log('🌐 Request sin origin - Permitido');
+      return callback(null, true);
+    }
     
-    if (allowedOrigins.some(allowed => origin === allowed || origin.startsWith('https://') && allowed.includes('ngrok.io'))) {
+    // Lista de dominios permitidos (actualizada)
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://192.168.100.6:3000',
+      'http://192.168.100.6:3001',
+      'https://*.ngrok.io',
+      'http://*.ngrok.io',
+      'https://*.ngrok-free.app',
+      'http://*.ngrok-free.app',
+      'https://*.ngrok-free.dev',
+      'http://*.ngrok-free.dev'
+    ];
+
+    console.log('🔍 Verificando CORS para origen:', origin);
+
+    // Verificar si el origen está permitido
+    const isAllowed = allowedOrigins.some(allowed => {
+      // Coincidencia exacta
+      if (origin === allowed) {
+        console.log('✅ Origen permitido (coincidencia exacta):', origin);
+        return true;
+      }
+      
+      // Coincidencia con wildcard para ngrok
+      if (allowed.includes('*') && origin.includes(allowed.replace('*.', ''))) {
+        console.log('✅ Origen permitido (wildcard):', origin);
+        return true;
+      }
+      
+      // Coincidencia parcial para subdominios de ngrok
+      if ((allowed.includes('ngrok.io') && origin.includes('ngrok.io')) ||
+          (allowed.includes('ngrok-free.app') && origin.includes('ngrok-free.app')) ||
+          (allowed.includes('ngrok-free.dev') && origin.includes('ngrok-free.dev'))) {
+        console.log('✅ Origen permitido (subdominio ngrok):', origin);
+        return true;
+      }
+      
+      return false;
+    });
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.log('🚫 Origen bloqueado por CORS:', origin);
+      console.log('📋 Orígenes permitidos:', allowedOrigins);
       callback(new Error('No permitido por CORS'));
     }
   },
-  credentials: true
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+};
 
-app.use(express.json());
+// =============================================
+// CONFIGURAR SOCKET.IO ANTES DE LOS MIDDLEWARE
+// =============================================
+const io = new Server(server, {
+  cors: corsOptions
+});
 
-// SERVIR ARCHIVOS ESTÁTICOS DESDE LA CARPETA RAIZ DEL PROYECTO
+// =============================================
+// MIDDLEWARE
+// =============================================
+app.use(cors(corsOptions));
+
+// Middleware para preflight requests
+app.options('*', cors(corsOptions));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// SERVIR ARCHIVOS ESTÁTICOS
 app.use(express.static(projectRoot));
-
-// SERVIR ARCHIVOS ESTÁTICOS ESPECÍFICOS
 app.use('/css', express.static(path.join(projectRoot, 'css')));
 app.use('/js', express.static(path.join(projectRoot, 'js')));
 app.use('/img', express.static(path.join(projectRoot, 'img')));
 
-// Conexión a MongoDB Local - BASE DE DATOS: LinKage
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/LinKage';
-
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Conectado a MongoDB - Base de datos: LinKage'))
-  .catch(err => {
-    console.error('❌ Error conectando a MongoDB:', err);
-    console.log('💡 Verifica que:');
-    console.log('   1. MongoDB esté ejecutándose');
-    console.log('   2. La base de datos "LinKage" exista');
-    console.log('   3. La URI sea: mongodb://localhost:27017/LinKage');
+// Middleware temporal para debug de CORS
+app.use((req, res, next) => {
+  console.log('🌐 Request recibida:', {
+    method: req.method,
+    url: req.url,
+    origin: req.get('origin'),
+    host: req.get('host')
   });
-
-// Esquemas de MongoDB
-const userSchema = new mongoose.Schema({
-  usuario: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  foto: { type: String, default: 'img/perfil_default.png' },
-  fechaRegistro: { type: Date, default: Date.now }
+  next();
 });
 
-const postSchema = new mongoose.Schema({
-  usuario: { type: String, required: true },
-  contenido: { type: String, required: true },
-  fecha: { type: Date, default: Date.now },
-  likes: { type: Number, default: 0 }
-});
-
-const messageSchema = new mongoose.Schema({
-  emisor: { type: String, required: true },
-  receptor: { type: String, required: true },
-  contenido: { type: String, required: true },
-  fecha: { type: Date, default: Date.now },
-  leido: { type: Boolean, default: false }
-});
-
-const User = mongoose.model('User', userSchema);
-const Post = mongoose.model('Post', postSchema);
-const Message = mongoose.model('Message', messageSchema);
-
-// Middleware de autenticación
+// =============================================
+// MIDDLEWARE DE AUTENTICACIÓN
+// =============================================
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -119,18 +147,47 @@ const authenticateToken = (req, res, next) => {
   }
 
   jwt.verify(token, process.env.JWT_SECRET || 'secreto_temporal', (err, user) => {
-    if (err) return res.status(403).json({ error: 'Token inválido' });
+    if (err) {
+      console.error('❌ Error verificando token:', err.message);
+      return res.status(403).json({ error: 'Token inválido' });
+    }
     req.user = user;
     next();
   });
 };
 
-// Routes - Autenticación
+// Conexión a MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/LinKage';
+
+mongoose.connect(MONGODB_URI)
+  .then(async () => {
+    console.log('✅ Conectado a MongoDB - Base de datos: LinKage');
+    try {
+      await initializeGridFS();
+      console.log('✅ GridFS inicializado y listo');
+    } catch (error) {
+      console.error('❌ Error crítico: No se pudo inicializar GridFS:', error);
+    }
+  })
+  .catch(err => {
+    console.error('❌ Error conectando a MongoDB:', err);
+  });
+
+// =============================================
+// USAR RUTAS
+// =============================================
+app.use('/api', perfilRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// =============================================
+// RUTAS DE AUTENTICACIÓN
+// =============================================
 app.post('/api/register', async (req, res) => {
   try {
     const { usuario, email, password } = req.body;
 
-    // Validaciones básicas
+    console.log('📝 Intentando registrar usuario:', { usuario, email });
+
     if (!usuario || !email || !password) {
       return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
@@ -139,7 +196,6 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
-    // Verificar si el usuario ya existe
     const usuarioExistente = await User.findOne({ 
       $or: [{ usuario }, { email }] 
     });
@@ -148,10 +204,8 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'El usuario o email ya está registrado' });
     }
 
-    // Hash de la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear usuario
     const nuevoUsuario = new User({
       usuario,
       email,
@@ -159,6 +213,8 @@ app.post('/api/register', async (req, res) => {
     });
 
     await nuevoUsuario.save();
+
+    console.log('✅ Usuario registrado exitosamente:', usuario);
 
     res.status(201).json({ 
       mensaje: 'Usuario registrado exitosamente',
@@ -170,7 +226,7 @@ app.post('/api/register', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error en registro:', error);
+    console.error('❌ Error en registro:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -179,23 +235,31 @@ app.post('/api/login', async (req, res) => {
   try {
     const { usuario, password } = req.body;
 
+    console.log('🔐 LOGIN INTENTADO - Usuario:', usuario);
+    console.log('🔐 LOGIN INTENTADO - Password length:', password ? password.length : 'null');
+
     if (!usuario || !password) {
+      console.log('❌ Login fallido: Usuario o password vacíos');
       return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
     }
 
-    // Buscar usuario
+    console.log('🔍 Buscando usuario en BD:', usuario);
     const usuarioEncontrado = await User.findOne({ usuario });
+    
     if (!usuarioEncontrado) {
+      console.log('❌ Usuario no encontrado en BD:', usuario);
       return res.status(400).json({ error: 'Usuario no encontrado' });
     }
 
-    // Verificar contraseña
+    console.log('✅ Usuario encontrado, verificando contraseña...');
     const passwordValida = await bcrypt.compare(password, usuarioEncontrado.password);
+    
     if (!passwordValida) {
+      console.log('❌ Contraseña incorrecta para usuario:', usuario);
       return res.status(400).json({ error: 'Contraseña incorrecta' });
     }
 
-    // Generar token
+    console.log('✅ Credenciales válidas, generando token...');
     const token = jwt.sign(
       { 
         usuario: usuarioEncontrado.usuario, 
@@ -206,92 +270,23 @@ app.post('/api/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    console.log('✅ Login exitoso para:', usuario);
+
     res.json({
       mensaje: 'Login exitoso',
       token,
       usuario: {
         usuario: usuarioEncontrado.usuario,
         email: usuarioEncontrado.email,
-        foto: usuarioEncontrado.foto
+        foto: usuarioEncontrado.foto,
+        biografia: usuarioEncontrado.biografia
       }
     });
 
   } catch (error) {
-    console.error('Error en login:', error);
+    console.error('❌ ERROR CRÍTICO en login:', error);
+    console.error('❌ Stack trace:', error.stack);
     res.status(500).json({ error: 'Error interno del servidor' });
-  }
-});
-
-// Routes - Perfil
-app.get('/api/perfil', authenticateToken, async (req, res) => {
-  try {
-    const usuario = await User.findOne(
-      { usuario: req.user.usuario },
-      'usuario email foto fechaRegistro'
-    );
-    
-    if (!usuario) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    res.json(usuario);
-  } catch (error) {
-    console.error('Error obteniendo perfil:', error);
-    res.status(500).json({ error: 'Error obteniendo perfil' });
-  }
-});
-
-// Configuración de multer para subir archivos
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(projectRoot, 'img/uploads/'));
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'avatar-' + req.user.usuario + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB límite
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Solo se permiten imágenes'), false);
-    }
-  }
-});
-
-// Ruta para subir foto de perfil
-app.post('/api/upload/foto', authenticateToken, upload.single('foto'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se subió ninguna imagen' });
-    }
-
-    const fotoUrl = '/img/uploads/' + req.file.filename;
-
-    const usuarioActualizado = await User.findOneAndUpdate(
-      { usuario: req.user.usuario },
-      { foto: fotoUrl },
-      { new: true }
-    );
-
-    res.json({
-      mensaje: 'Foto subida exitosamente',
-      foto: fotoUrl,
-      usuario: {
-        usuario: usuarioActualizado.usuario,
-        email: usuarioActualizado.email,
-        foto: usuarioActualizado.foto
-      }
-    });
-
-  } catch (error) {
-    console.error('Error subiendo foto:', error);
-    res.status(500).json({ error: 'Error subiendo foto' });
   }
 });
 
@@ -314,9 +309,15 @@ app.post('/api/posts', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'El contenido no puede estar vacío' });
     }
 
+    const usuario = await User.findOne({ usuario: req.user.usuario });
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
     const nuevoPost = new Post({
       usuario: req.user.usuario,
-      contenido: contenido.trim()
+      contenido: contenido.trim(),
+      usuarioFoto: usuario.foto
     });
 
     await nuevoPost.save();
@@ -353,7 +354,7 @@ app.get('/api/usuarios', authenticateToken, async (req, res) => {
   try {
     const usuarios = await User.find(
       { usuario: { $ne: req.user.usuario } },
-      'usuario foto'
+      'usuario foto biografia'
     );
     res.json(usuarios);
   } catch (error) {
@@ -369,13 +370,12 @@ app.get('/api/info', (req, res) => {
     server: 'Linkage Backend',
     clientIp: req.ip,
     clientHost: req.get('host'),
+    origin: req.get('origin'),
     timestamp: new Date().toISOString(),
-    accessPoints: [
-      'http://localhost:3001',
-      'http://192.168.100.6:3001'
-    ],
+    environment: process.env.APP_ENV || 'development',
     cors: {
-      allowedOrigins: allowedOrigins
+      allowed: true,
+      origin: req.get('origin')
     }
   });
 });
@@ -385,14 +385,14 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Servidor Linkage funcionando',
-    database: 'LinKage',
+    database: mongoose.connection.readyState === 1 ? 'Conectado' : 'Desconectado',
     timestamp: new Date().toISOString(),
-    environment: process.env.APP_ENV || 'development'
+    environment: process.env.APP_ENV || 'development',
+    cors: req.get('origin') || 'No origin header'
   });
 });
 
-// RUTAS PARA LAS PÁGINAS HTML (desde la carpeta raíz del proyecto)
-// Redirigir la raíz a sesion.html
+// RUTAS PARA LAS PÁGINAS HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(projectRoot, 'sesion.html'));
 });
@@ -409,9 +409,11 @@ app.get('/terminos', (req, res) => {
   res.sendFile(path.join(projectRoot, 'terminos.html'));
 });
 
-// WebSocket para chat en vivo
+// =============================================
+// WEBSOCKET PARA CHAT EN VIVO - DESPUÉS DE DEFINIR io
+// =============================================
 io.on('connection', (socket) => {
-  console.log('🔌 Usuario conectado:', socket.id);
+  console.log('🔌 Usuario conectado via WebSocket:', socket.id);
 
   socket.on('unirseSala', (usuario) => {
     socket.join(usuario);
@@ -435,7 +437,6 @@ io.on('connection', (socket) => {
 
       await nuevoMensaje.save();
 
-      // Enviar a ambos usuarios
       io.to(emisor).to(receptor).emit('nuevoMensaje', nuevoMensaje);
       console.log(`💬 Mensaje de ${emisor} a ${receptor}`);
     } catch (error) {
@@ -451,20 +452,38 @@ io.on('connection', (socket) => {
 
 // Manejo de rutas no encontradas
 app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Ruta no encontrada' });
+  res.status(404).json({ 
+    error: 'Ruta no encontrada',
+    path: req.originalUrl,
+    method: req.method
+  });
+});
+
+// Manejo global de errores
+app.use((error, req, res, next) => {
+  console.error('❌ Error global:', error);
+  res.status(500).json({ 
+    error: 'Error interno del servidor',
+    message: error.message
+  });
 });
 
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 
 server.listen(PORT, HOST, () => {
-  console.log('='.repeat(50));
+  console.log('='.repeat(60));
   console.log('🚀 SERVIDOR LINKAGE INICIADO');
-  console.log('='.repeat(50));
+  console.log('='.repeat(60));
   console.log(`📍 Local: http://localhost:${PORT}`);
   console.log(`📱 Red Local: http://192.168.100.6:${PORT}`);
+  console.log(`🌐 Externo: Disponible via ngrok`);
   console.log(`📊 MongoDB: ${MONGODB_URI}`);
   console.log(`🔑 JWT Secret: ${process.env.JWT_SECRET ? 'Configurado' : 'Usando valor por defecto'}`);
   console.log(`🔄 Entorno: ${process.env.APP_ENV || 'development'}`);
-  console.log('='.repeat(50));
+  console.log(`🌍 CORS: Habilitado para múltiples orígenes`);
+  console.log(`🔌 WebSocket: Socket.io inicializado`);
+  console.log('='.repeat(60));
+  console.log('💡 Para acceso externo ejecuta: npm run ngrok');
+  console.log('='.repeat(60));
 });

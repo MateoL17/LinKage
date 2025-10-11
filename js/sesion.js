@@ -5,21 +5,41 @@ class SessionManager {
         this.init();
     }
 
-    // ✅ Detección optimizada de API URL
+    // ✅ DETECCIÓN CORREGIDA - SIN PUERTO PARA NGROK
     getApiUrl() {
         const { hostname, protocol } = window.location;
-        const configs = {
-            'localhost': `http://localhost:3001/api`,
-            '127.0.0.1': `http://127.0.0.1:3001/api`,
-            '192.168.100.6': `http://192.168.100.6:3001/api`
-        };
-
-        // Dominios externos (ngrok, localhost.run, etc.)
-        if (hostname.includes('ngrok.io') || hostname.includes('localhost.run')) {
-            return `${protocol}//${hostname}/api`;
+        
+        console.log('🔍 Detección de URL - Hostname:', hostname);
+        console.log('🔍 Detección de URL - Protocol:', protocol);
+        
+        // CASO 1: Ngrok - NO USAR PUERTO
+        if (hostname.includes('ngrok.io') || 
+            hostname.includes('ngrok-free.app') ||
+            hostname.includes('ngrok-free.dev')) {
+            
+            const apiUrl = `${protocol}//${hostname}/api`;
+            console.log('🌐 URL Ngrok detectada (sin puerto):', apiUrl);
+            return apiUrl;
         }
-
-        return configs[hostname] || `${protocol}//${hostname}:3001/api`;
+        
+        // CASO 2: Localhost - USAR PUERTO 3001
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            const apiUrl = `http://localhost:3001/api`;
+            console.log('📍 URL Localhost detectada (con puerto):', apiUrl);
+            return apiUrl;
+        }
+        
+        // CASO 3: Red local - USAR PUERTO 3001
+        if (hostname === '192.168.100.6') {
+            const apiUrl = `http://192.168.100.6:3001/api`;
+            console.log('📱 URL Red local detectada (con puerto):', apiUrl);
+            return apiUrl;
+        }
+        
+        // CASO POR DEFECTO: Asumir entorno de producción sin puerto
+        const apiUrl = `${protocol}//${hostname}/api`;
+        console.log('⚡ URL por defecto (sin puerto):', apiUrl);
+        return apiUrl;
     }
 
     init() {
@@ -29,7 +49,62 @@ class SessionManager {
             this.setupApplication();
             this.injectGlobalStyles();
             this.initializeFormAnimations();
+            this.testConnection();
         });
+    }
+
+    // ✅ MÉTODO DE PRUEBA CORREGIDO
+    async testConnection() {
+        try {
+            console.log('🔍 Iniciando prueba de conexión...');
+            console.log('🔗 URL de API:', this.API_URL);
+            
+            // Usar directamente this.API_URL + '/health'
+            const healthUrl = this.API_URL.replace('/api', '') + '/health';
+            console.log('🩺 Probando endpoint:', healthUrl);
+            
+            const response = await fetch(healthUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                // Agregar timeout
+                signal: AbortSignal.timeout(10000)
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ ✅ ✅ CONEXIÓN EXITOSA!');
+                console.log('📊 Datos del servidor:', data);
+                return true;
+            } else {
+                console.warn('⚠️ Respuesta no exitosa. Status:', response.status);
+                return false;
+            }
+            
+        } catch (error) {
+            console.error('❌ Error en prueba de conexión:', error.name, error.message);
+            
+            // Mostrar información específica del error
+            if (error.name === 'AbortError') {
+                console.log('⏰ Timeout: El servidor no respondió en 10 segundos');
+            } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                console.log('🔌 Error de red: No se pudo conectar al servidor');
+                console.log('💡 Verifica:');
+                console.log('   1. Que ngrok esté corriendo');
+                console.log('   2. Que la URL sea correcta');
+                console.log('   3. Que no haya problemas de firewall/red');
+            }
+            
+            return false;
+        }
+    }
+
+    setupApplication() {
+        this.setupForms();
+        
+        console.log('✅ Aplicación configurada con URL:', this.API_URL);
     }
 
     isLoggedIn() {
@@ -39,17 +114,6 @@ class SessionManager {
             return true;
         }
         return false;
-    }
-
-    setupApplication() {
-        this.setupForms();
-        
-        console.log('✅ Módulos cargados:', {
-            login: '✓', 
-            registro: '✓', 
-            cambioFormulario: '✓',
-            animaciones: '✓'
-        });
     }
 
     setupForms() {
@@ -186,7 +250,6 @@ class SessionManager {
 
         if (!loginForm || !registerForm || !loginContainer || !registerContainer) return;
 
-        // Animación de salida del login
         loginForm.classList.remove('form-visible');
         loginForm.classList.add('form-slide-out-left');
         
@@ -194,12 +257,10 @@ class SessionManager {
             loginContainer.classList.add('hidden');
             registerContainer.classList.remove('hidden');
             
-            // Animación de entrada del registro
             registerForm.classList.remove('form-hidden');
             registerForm.classList.add('form-slide-in-right');
             registerForm.classList.add('form-visible');
             
-            // Limpiar clases de animación después de completar
             setTimeout(() => {
                 loginForm.classList.remove('form-slide-out-left');
                 registerForm.classList.remove('form-slide-in-right');
@@ -215,7 +276,6 @@ class SessionManager {
 
         if (!loginForm || !registerForm || !loginContainer || !registerContainer) return;
 
-        // Animación de salida del registro
         registerForm.classList.remove('form-visible');
         registerForm.classList.add('form-slide-out-right');
         
@@ -223,12 +283,10 @@ class SessionManager {
             registerContainer.classList.add('hidden');
             loginContainer.classList.remove('hidden');
             
-            // Animación de entrada del login
             loginForm.classList.remove('form-hidden');
             loginForm.classList.add('form-slide-in-left');
             loginForm.classList.add('form-visible');
             
-            // Limpiar clases de animación después de completar
             setTimeout(() => {
                 registerForm.classList.remove('form-slide-out-right');
                 loginForm.classList.remove('form-slide-in-left');
@@ -243,40 +301,60 @@ class SessionManager {
         try {
             this.mostrarCargando(true, 'loginBtn');
             
-            const response = await fetch(`${this.API_URL}/login`, {
+            const loginUrl = `${this.API_URL}/login`;
+            console.log('🔐 ENVIANDO LOGIN A:', loginUrl);
+            console.log('📤 Datos:', { usuario: usuario.substring(0, 3) + '***' });
+            
+            const response = await fetch(loginUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario, password })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ usuario, password }),
+                signal: AbortSignal.timeout(15000) // 15 segundos timeout
             });
 
-            // Verificar si la respuesta es JSON válido
+            console.log('📥 Respuesta recibida - Status:', response.status);
+            
             const text = await response.text();
             let data;
+            
             try {
                 data = text ? JSON.parse(text) : {};
             } catch (e) {
-                console.error('Error parsing JSON:', e);
+                console.error('❌ Error parseando JSON:', e);
                 data = { error: 'Respuesta inválida del servidor' };
             }
 
             if (response.ok) {
+                console.log('✅ Login exitoso');
                 this.handleLoginSuccess(data);
             } else {
-                this.mostrarError(data.error || `Error ${response.status}: ${response.statusText}`);
-                // Restaurar botón inmediatamente en caso de error
+                const errorMsg = data.error || `Error ${response.status}`;
+                console.error('❌ Error en login:', errorMsg);
+                this.mostrarError(errorMsg);
                 this.mostrarCargando(false, 'loginBtn');
                 botonRestaurado = true;
             }
             
         } catch (error) {
-            console.error('Error:', error);
-            this.mostrarError('Error de conexión. Verifica que el servidor esté funcionando.');
-            // Restaurar botón inmediatamente en caso de error
+            console.error('❌ Error de conexión completo:', error);
+            
+            let mensajeError = 'Error de conexión';
+            
+            if (error.name === 'AbortError') {
+                mensajeError = 'El servidor no respondió a tiempo. Intenta nuevamente.';
+            } else if (error.name === 'TypeError') {
+                mensajeError = 'No se pudo conectar al servidor. Verifica tu conexión.';
+            }
+            
+            this.mostrarError(mensajeError);
+            
             if (!botonRestaurado) {
                 this.mostrarCargando(false, 'loginBtn');
             }
         } finally {
-            // Asegurarse de que el botón se restaure incluso si hay errores no capturados
             if (!botonRestaurado) {
                 setTimeout(() => {
                     this.mostrarCargando(false, 'loginBtn');
@@ -307,11 +385,14 @@ class SessionManager {
         try {
             this.mostrarCargando(true, 'registroBtn');
             
-            console.log('📤 Enviando registro:', { usuario, email });
+            console.log('📤 Enviando registro a:', `${this.API_URL}/register`);
             
             const response = await fetch(`${this.API_URL}/register`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify({ usuario, email, password })
             });
 
@@ -321,7 +402,6 @@ class SessionManager {
                 ok: response.ok
             });
 
-            // Manejar respuesta de texto primero
             const responseText = await response.text();
             console.log('📄 Contenido de la respuesta:', responseText);
 
@@ -330,7 +410,6 @@ class SessionManager {
                 data = responseText ? JSON.parse(responseText) : {};
             } catch (parseError) {
                 console.error('❌ Error parseando JSON:', parseError);
-                // Si el usuario se creó pero hay error en la respuesta, manejarlo como éxito
                 if (response.status === 500 && responseText.includes('usuario creado')) {
                     this.handleRegisterSuccess(usuario);
                     return;
@@ -341,10 +420,8 @@ class SessionManager {
             if (response.ok) {
                 this.handleRegisterSuccess(usuario);
             } else if (response.status === 500) {
-                // Error 500 pero el usuario podría haberse creado
                 console.warn('⚠️ Error 500 del servidor, verificando si el usuario fue creado...');
                 
-                // Intentar verificar si el usuario existe intentando iniciar sesión
                 const verification = await this.verificarUsuarioCreado(usuario, password);
                 if (verification.existe) {
                     this.handleRegisterSuccess(usuario);
@@ -366,7 +443,6 @@ class SessionManager {
                 this.mostrarCargando(false, 'registroBtn');
             }
         } finally {
-            // Asegurarse de que el botón se restaure incluso si hay errores no capturados
             if (!botonRestaurado) {
                 setTimeout(() => {
                     this.mostrarCargando(false, 'registroBtn');
@@ -375,7 +451,6 @@ class SessionManager {
         }
     }
 
-    // Método para verificar si el usuario fue creado a pesar del error 500
     async verificarUsuarioCreado(usuario, password) {
         try {
             console.log('🔍 Verificando si el usuario fue creado...');
@@ -401,7 +476,6 @@ class SessionManager {
         setTimeout(() => {
             this.switchToLogin();
             
-            // Rellenar el campo de usuario en el formulario de login
             const loginUsuario = document.getElementById('loginUsuario');
             if (loginUsuario) {
                 loginUsuario.value = usuario;
@@ -449,31 +523,27 @@ class SessionManager {
         const boton = document.getElementById(botonId);
         if (!boton) return;
 
-        // Textos por defecto para cada botón
         const textosPorDefecto = {
-        'loginBtn': 'Ingresar',
-        'registroBtn': 'Registrar'
+            'loginBtn': 'Ingresar',
+            'registroBtn': 'Registrar'
         };
 
         if (mostrar) {
-            // Guardar el texto actual como original si no existe
             if (!boton.hasAttribute('data-original-text')) {
-            const textoActual = boton.textContent.trim();
-            boton.setAttribute('data-original-text', textoActual || textosPorDefecto[botonId]);
+                const textoActual = boton.textContent.trim();
+                boton.setAttribute('data-original-text', textoActual || textosPorDefecto[botonId]);
             }
         
             boton.innerHTML = '<div class="loading-spinner"></div> Procesando...';
             boton.disabled = true;
             boton.classList.add('loading');
         } else {
-            // Restaurar el texto original
             const originalText = boton.getAttribute('data-original-text');
             if (originalText) {
-            boton.innerHTML = originalText;
-            boton.removeAttribute('data-original-text');
+                boton.innerHTML = originalText;
+                boton.removeAttribute('data-original-text');
             } else {
-            // Usar texto por defecto si no hay original
-            boton.innerHTML = textosPorDefecto[botonId] || 'Continuar';
+                boton.innerHTML = textosPorDefecto[botonId] || 'Continuar';
             }
         
             boton.disabled = false;
@@ -529,7 +599,6 @@ class SessionManager {
                 margin-right: 8px;
             }
 
-            /* Estilo para botón deshabilitado durante carga */
             button.loading {
                 opacity: 0.8;
                 cursor: not-allowed;
@@ -573,8 +642,17 @@ class SessionManager {
 }
 
 // ================= INICIALIZACIÓN =================
-console.log('🔗 API URL:', new SessionManager().API_URL);
-console.log('📍 Hostname:', window.location.hostname);
+console.log('🎯 INICIANDO SESSION MANAGER');
+const sessionManager = new SessionManager();
 
-// Hacer disponible globalmente para debugging
-window.sessionManager = new SessionManager();
+// Debug completo
+console.log('='.repeat(50));
+console.log('🔧 INFORMACIÓN DE DEPURACIÓN');
+console.log('='.repeat(50));
+console.log('📍 Hostname:', window.location.hostname);
+console.log('🌐 URL Completa:', window.location.href);
+console.log('🔗 API URL Final:', sessionManager.API_URL);
+console.log('🖥️  User Agent:', navigator.userAgent);
+console.log('='.repeat(50));
+
+window.sessionManager = sessionManager;
