@@ -108,13 +108,39 @@ class SessionManager {
     }
 
     isLoggedIn() {
-        const token = localStorage.getItem('token');
-        if (token) {
-            window.location.href = 'principal.html';
-            return true;
-        }
+    // Si hay parámetro de logout, no redirigir
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('logout') === 'true') {
+        console.log('🚪 Sesión cerrada, no redirigir');
         return false;
     }
+    
+    const token = localStorage.getItem('token');
+    if (token) {
+        // Verificar que el token no esté expirado
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const now = Date.now() / 1000;
+            
+            if (payload.exp && payload.exp < now) {
+                console.log('❌ Token expirado');
+                localStorage.removeItem('token');
+                localStorage.removeItem('usuarioActivo');
+                return false;
+            }
+            
+            console.log('✅ Usuario autenticado, redirigiendo...');
+            window.location.href = 'principal.html';
+            return true;
+        } catch (error) {
+            console.error('❌ Error verificando token:', error);
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuarioActivo');
+            return false;
+        }
+    }
+    return false;
+}
 
     setupForms() {
         this.setupLoginForm();

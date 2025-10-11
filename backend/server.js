@@ -293,10 +293,12 @@ app.post('/api/login', async (req, res) => {
 // Routes - Posts
 app.get('/api/posts', authenticateToken, async (req, res) => {
   try {
+    console.log('📝 Solicitando posts...');
     const posts = await Post.find().sort({ fecha: -1 }).limit(50);
+    console.log(`✅ Enviando ${posts.length} posts`);
     res.json(posts);
   } catch (error) {
-    console.error('Error obteniendo posts:', error);
+    console.error('❌ Error obteniendo posts:', error);
     res.status(500).json({ error: 'Error obteniendo posts' });
   }
 });

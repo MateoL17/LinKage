@@ -12,7 +12,7 @@ function getApiUrl() {
     return 'http://192.168.100.6:3001/api';
   }
   // Si estamos en ngrok o dominio externo
-  else if (hostname.includes('ngrok.io') || hostname.includes('localhost.run')) {
+  else if (hostname.includes('ngrok.io') || hostname.includes('localhost.run') || hostname.includes('ngrok-free.app') || hostname.includes('ngrok-free.dev')) {
     return `${protocol}//${hostname}/api`;
   }
   // Por defecto, usar el mismo host
@@ -26,6 +26,183 @@ let socket;
 
 console.log('🔗 API URL:', API_URL);
 console.log('📍 Hostname:', window.location.hostname);
+
+// ================= CLASES NUEVAS INTEGRADAS =================
+
+// Clase para manejar WebSockets corregida
+class SocketManager {
+    constructor() {
+        this.socket = null;
+        this.SOCKET_URL = this.getSocketUrl();
+    }
+
+    getSocketUrl() {
+        const { hostname, protocol } = window.location;
+        
+        if (hostname.includes('ngrok.io') || 
+            hostname.includes('ngrok-free.app') ||
+            hostname.includes('ngrok-free.dev')) {
+            return `${protocol === 'https:' ? 'wss:' : 'ws:'}//${hostname}`;
+        }
+        
+        // Para localhost y red local
+        if (hostname === '192.168.100.6') {
+            return 'http://192.168.100.6:3001';
+        }
+        
+        return 'http://localhost:3001';
+    }
+
+    connect(usuario) {
+        try {
+            console.log('🔌 Conectando WebSocket a:', this.SOCKET_URL);
+            
+            this.socket = io(this.SOCKET_URL, {
+                transports: ['websocket', 'polling'],
+                timeout: 10000,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
+
+            // Unirse a la sala del usuario
+            this.socket.emit('unirseSala', usuario);
+
+            // Escuchar nuevos mensajes
+            this.socket.on('nuevoMensaje', (mensaje) => {
+                agregarMensajeAlChat(mensaje);
+            });
+
+            // Escuchar nuevos posts
+            this.socket.on('nuevoPost', (post) => {
+                agregarPostAlFeed(post);
+            });
+
+            this.socket.on('connect', () => {
+                console.log('✅ WebSocket conectado exitosamente');
+                console.log('🔗 Socket ID:', this.socket.id);
+            });
+
+            this.socket.on('disconnect', (reason) => {
+                console.log('🔌 WebSocket desconectado:', reason);
+            });
+
+            this.socket.on('connect_error', (error) => {
+                console.error('❌ Error conectando WebSocket:', error);
+            });
+
+        } catch (error) {
+            console.error('❌ Error inicializando WebSocket:', error);
+        }
+    }
+
+    disconnect() {
+        if (this.socket) {
+            this.socket.disconnect();
+            console.log('🔌 WebSocket desconectado manualmente');
+        }
+    }
+
+    enviarMensaje(mensajeData) {
+        if (this.socket) {
+            this.socket.emit('enviarMensaje', mensajeData);
+        } else {
+            console.error('WebSocket no conectado');
+        }
+    }
+}
+
+// Clase para manejar sesión corregida
+class SessionManager {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this.verificarAutenticacion();
+        this.setupLogout();
+    }
+
+    verificarAutenticacion() {
+        const token = localStorage.getItem('token');
+        const usuario = localStorage.getItem('usuarioActivo');
+        
+        if (!token || !usuario) {
+            console.log('🔐 No autenticado, redirigiendo a login...');
+            this.cerrarSesion();
+            return;
+        }
+
+        try {
+            const usuarioData = JSON.parse(usuario);
+            this.mostrarUsuario(usuarioData);
+        } catch (error) {
+            console.error('❌ Error parseando usuario:', error);
+            this.cerrarSesion();
+        }
+    }
+
+    mostrarUsuario(usuario) {
+        const userElement = document.getElementById('userDisplay');
+        const avatarElement = document.getElementById('userAvatar');
+        
+        if (userElement) {
+            userElement.textContent = `@${usuario.usuario}`;
+        }
+        
+        if (avatarElement && usuario.foto) {
+            avatarElement.src = corregirUrlAvatar(usuario.foto);
+        }
+    }
+
+    setupLogout() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.cerrarSesion();
+            });
+        }
+        
+        // También configurar el botón .logout si existe
+        const logoutBtnOld = document.querySelector('.logout');
+        if (logoutBtnOld) {
+            logoutBtnOld.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.cerrarSesion();
+            });
+        }
+    }
+
+    cerrarSesion() {
+        console.log('🚪 Cerrando sesión...');
+        
+        // Desconectar WebSocket primero
+        if (window.socketManager) {
+            window.socketManager.disconnect();
+        }
+        
+        // Limpiar localStorage COMPLETAMENTE
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuarioActivo');
+        localStorage.removeItem('user');
+        
+        // Limpiar sessionStorage por si acaso
+        sessionStorage.clear();
+        
+        console.log('✅ Sesión cerrada, redirigiendo...');
+        
+        // Redirigir a sesion.html con parámetro para evitar redirección automática
+        setTimeout(() => {
+            window.location.href = 'sesion.html?logout=true';
+        }, 100);
+    }
+}
+
+// ================= INICIALIZACIÓN =================
+
+// Crear instancias globales
+window.socketManager = new SocketManager();
+window.sessionManager = new SessionManager();
 
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem('token');
@@ -47,8 +224,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Cargar datos actualizados del usuario
   await cargarDatosUsuario(usuarioActivo);
   
-  // Conectar WebSocket
-  conectarWebSocket(usuarioActivo.usuario);
+  // Conectar WebSocket usando la nueva clase
+  window.socketManager.connect(usuarioActivo.usuario);
 
   // Cargar datos iniciales
   await cargarPosts();
@@ -204,50 +381,6 @@ function actualizarSeccionPerfil(usuario) {
   if (settingsBio) settingsBio.value = usuario.biografia || 'Biografía del usuario...';
   
   console.log('✅ Sección perfil actualizada');
-}
-
-// FUNCIÓN MEJORADA PARA CONECTAR WEBSOCKET
-function conectarWebSocket(usuario) {
-  // Determinar la URL del WebSocket dinámicamente
-  let socketUrl = 'http://localhost:3001';
-  const hostname = window.location.hostname;
-  
-  if (hostname === '192.168.100.6') {
-    socketUrl = 'http://192.168.100.6:3001';
-  } else if (hostname.includes('ngrok.io')) {
-    socketUrl = `https://${hostname}`;
-  }
-
-  console.log('🔌 Conectando WebSocket a:', socketUrl);
-  
-  socket = io(socketUrl, {
-    transports: ['websocket', 'polling']
-  });
-  
-  // Unirse a la sala del usuario
-  socket.emit('unirseSala', usuario);
-
-  // Escuchar nuevos mensajes
-  socket.on('nuevoMensaje', (mensaje) => {
-    agregarMensajeAlChat(mensaje);
-  });
-
-  // Escuchar nuevos posts
-  socket.on('nuevoPost', (post) => {
-    agregarPostAlFeed(post);
-  });
-
-  socket.on('connect', () => {
-    console.log('✅ Conectado al servidor WebSocket');
-  });
-
-  socket.on('disconnect', () => {
-    console.log('❌ Desconectado del servidor WebSocket');
-  });
-
-  socket.on('connect_error', (error) => {
-    console.error('❌ Error conectando WebSocket:', error);
-  });
 }
 
 // FUNCIÓN PARA CARGAR POSTS
@@ -511,8 +644,9 @@ async function enviarPost(contenido) {
 function enviarMensaje(contenido, receptor = 'general') {
   const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
   
-  if (socket) {
-    socket.emit('enviarMensaje', {
+  // Usar la nueva clase SocketManager
+  if (window.socketManager) {
+    window.socketManager.enviarMensaje({
       emisor: usuarioActivo.usuario,
       receptor: receptor,
       contenido: contenido,
@@ -772,9 +906,6 @@ function configurarEventos() {
   
   // Configurar botones de like/dislike
   configurarBotonesDescubrir();
-  
-  // Configurar cerrar sesión
-  configurarCerrarSesion();
 }
 
 // ✅ FUNCIÓN PARA CONFIGURAR BOTONES DE DESCUBRIR
@@ -978,22 +1109,6 @@ function actualizarAvataresEnInterfaz(nuevaFotoUrl) {
   }
 
   console.log('✅ Todos los avatares actualizados correctamente');
-}
-
-// ✅ FUNCIÓN PARA CONFIGURAR CERRAR SESIÓN
-function configurarCerrarSesion() {
-  const logoutBtn = document.querySelector('.logout');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuarioActivo');
-        if (socket) socket.disconnect();
-        window.location.href = 'sesion.html';
-      }
-    });
-  }
 }
 
 // ✅ CONFIGURACIÓN DE ESTILOS GLOBALES
