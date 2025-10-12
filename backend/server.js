@@ -17,6 +17,8 @@ import Message from './models/Message.js';
 // Importar rutas
 import perfilRoutes from './routes/perfil.js';
 import uploadRoutes from './routes/upload.js';
+import descubrirRoutes from './routes/descubrir.js';
+import mensajesRoutes from './routes/mensajes.js';
 
 // Importar GridFS
 import { initializeGridFS } from './config/gridfs.js';
@@ -176,55 +178,47 @@ mongoose.connect(MONGODB_URI)
 // =============================================
 // USAR RUTAS
 // =============================================
-app.use('/api', perfilRoutes);
+
+app.use('/api/perfil', perfilRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/usuarios', descubrirRoutes);
+app.use('/api/mensajes', mensajesRoutes);
+app.use('/api', descubrirRoutes);
+app.use('/api', perfilRoutes);
 
 // =============================================
 // RUTAS DE AUTENTICACIÓN
 // =============================================
 app.post('/api/register', async (req, res) => {
   try {
-    const { usuario, email, password } = req.body;
-
-    console.log('📝 Intentando registrar usuario:', { usuario, email });
+    const { usuario, email, password, rol } = req.body; // <- incluye rol
 
     if (!usuario || !email || !password) {
       return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-    }
-
-    const usuarioExistente = await User.findOne({ 
-      $or: [{ usuario }, { email }] 
-    });
-
+    const usuarioExistente = await User.findOne({ $or: [{ usuario }, { email }] });
     if (usuarioExistente) {
       return res.status(400).json({ error: 'El usuario o email ya está registrado' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const nuevoUsuario = new User({
       usuario,
       email,
-      password: hashedPassword
+      password,
+      rol: rol || 'usuario' // <- por defecto "usuario"
     });
 
     await nuevoUsuario.save();
 
-    console.log('✅ Usuario registrado exitosamente:', usuario);
-
-    res.status(201).json({ 
+    res.status(201).json({
       mensaje: 'Usuario registrado exitosamente',
       usuario: {
         usuario: nuevoUsuario.usuario,
         email: nuevoUsuario.email,
-        foto: nuevoUsuario.foto
+        rol: nuevoUsuario.rol
       }
     });
-
   } catch (error) {
     console.error('❌ Error en registro:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
@@ -235,42 +229,48 @@ app.post('/api/login', async (req, res) => {
   try {
     const { usuario, password } = req.body;
 
-    console.log('🔐 LOGIN INTENTADO - Usuario:', usuario);
-    console.log('🔐 LOGIN INTENTADO - Password length:', password ? password.length : 'null');
+    console.log('🔐 LOGIN DETALLADO - Usuario:', usuario);
+    console.log('🔐 Password recibida:', password ? `"${password}" (${password.length} chars)` : 'null');
 
     if (!usuario || !password) {
-      console.log('❌ Login fallido: Usuario o password vacíos');
       return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
     }
 
-    console.log('🔍 Buscando usuario en BD:', usuario);
     const usuarioEncontrado = await User.findOne({ usuario });
     
     if (!usuarioEncontrado) {
-      console.log('❌ Usuario no encontrado en BD:', usuario);
+      console.log('❌ Usuario no encontrado en BD');
       return res.status(400).json({ error: 'Usuario no encontrado' });
     }
 
-    console.log('✅ Usuario encontrado, verificando contraseña...');
+    console.log('🔍 Usuario encontrado en BD');
+    console.log('📝 Password en BD (hash):', usuarioEncontrado.password);
+    console.log('🔑 Comparando contraseñas...');
+
+    // DEBUG: Verificar el hash
     const passwordValida = await bcrypt.compare(password, usuarioEncontrado.password);
     
+    console.log('✅ Resultado comparación bcrypt:', passwordValida);
+
     if (!passwordValida) {
-      console.log('❌ Contraseña incorrecta para usuario:', usuario);
+      console.log('❌ BCRYPT: Las contraseñas NO coinciden');
+      console.log('🔍 DEBUG - Input password:', password);
+      console.log('🔍 DEBUG - Stored hash:', usuarioEncontrado.password);
       return res.status(400).json({ error: 'Contraseña incorrecta' });
     }
 
-    console.log('✅ Credenciales válidas, generando token...');
+    console.log('✅ BCRYPT: Contraseñas coinciden - Login exitoso');
+
     const token = jwt.sign(
       { 
         usuario: usuarioEncontrado.usuario, 
         id: usuarioEncontrado._id,
-        email: usuarioEncontrado.email 
+        email: usuarioEncontrado.email,
+        rol: usuarioEncontrado.rol
       },
       process.env.JWT_SECRET || 'secreto_temporal',
       { expiresIn: '24h' }
     );
-
-    console.log('✅ Login exitoso para:', usuario);
 
     res.json({
       mensaje: 'Login exitoso',
@@ -284,10 +284,19 @@ app.post('/api/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ ERROR CRÍTICO en login:', error);
-    console.error('❌ Stack trace:', error.stack);
+    console.error('❌ ERROR en login:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
+});
+
+// Ruta de salud
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Servidor Linkage funcionando',
+    database: mongoose.connection.readyState === 1 ? 'Conectado' : 'Desconectado',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Routes - Posts
@@ -445,6 +454,20 @@ app.get('/api/messages/:receptor', authenticateToken, async (req, res) => {
   }
 });
 
+// Obtener información del usuario actual (según token)
+app.get('/api/usuarioActual', authenticateToken, async (req, res) => {
+  try {
+    const usuario = await User.findById(req.user.id).select('-password');
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    res.json(usuario);
+  } catch (error) {
+    console.error('❌ Error obteniendo usuario actual:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
 // Route para obtener usuarios (para el chat)
 app.get('/api/usuarios', authenticateToken, async (req, res) => {
   try {
@@ -516,6 +539,18 @@ io.on('connection', (socket) => {
     console.log(`👤 Usuario ${usuario} unido a la sala`);
   });
 
+  // ✅ AGREGAR: Evento para unirse a conversación específica
+  socket.on('unirseConversacion', (data) => {
+    socket.join(data.conversacion);
+    console.log(`💬 Usuario ${data.usuario} unido a conversación con @${data.conversacion}`);
+  });
+
+  // ✅ AGREGAR: Evento para salir de conversación
+  socket.on('salirConversacion', (data) => {
+    socket.leave(data.conversacion);
+    console.log(`💬 Usuario ${data.usuario} salió de conversación con @${data.conversacion}`);
+  });
+
   socket.on('enviarMensaje', async (data) => {
     try {
       const { emisor, receptor, contenido } = data;
@@ -540,6 +575,70 @@ io.on('connection', (socket) => {
       socket.emit('errorMensaje', { error: 'Error enviando mensaje' });
     }
   });
+
+  // AGREGAR: Evento específico para mensajes privados
+  socket.on('enviarMensajePrivado', async (data) => {
+  try {
+    const { emisor, receptor, contenido } = data;
+
+    console.log(`📨 [WebSocket] Mensaje privado de @${emisor} a @${receptor}: ${contenido}`);
+
+    // Validación más permisiva
+    if (!contenido || contenido.trim().length === 0) {
+      socket.emit('errorMensaje', { error: 'El mensaje no puede estar vacío' });
+      return;
+    }
+
+    if (!emisor || !receptor) {
+      socket.emit('errorMensaje', { error: 'Emisor o receptor faltante' });
+      return;
+    }
+
+    // Verificar que el receptor existe
+    const usuarioReceptor = await User.findOne({ usuario: receptor });
+    if (!usuarioReceptor) {
+      socket.emit('errorMensaje', { error: 'Usuario receptor no encontrado' });
+      return;
+    }
+
+    // Crear y guardar mensaje
+    const nuevoMensaje = new Message({
+      emisor,
+      receptor,
+      contenido: contenido.trim(),
+      fecha: new Date()
+    });
+
+    await nuevoMensaje.save();
+
+    console.log('✅ Mensaje privado guardado en BD:', nuevoMensaje._id);
+
+    // Enriquecer con información del usuario emisor
+    const usuarioEmisor = await User.findOne({ usuario: emisor });
+    const mensajeEnriquecido = {
+      _id: nuevoMensaje._id,
+      emisor: nuevoMensaje.emisor,
+      receptor: nuevoMensaje.receptor,
+      contenido: nuevoMensaje.contenido,
+      fecha: nuevoMensaje.fecha,
+      foto: usuarioEmisor?.foto || 'img/perfil_default.png'
+    };
+
+    // DEBUG: Log para verificar a quién se envía
+    console.log(`📤 Enviando mensaje a salas: @${emisor} y @${receptor}`);
+    
+    // Emitir a ambos usuarios - CORREGIDO
+    socket.to(emisor).to(receptor).emit('nuevoMensajePrivado', mensajeEnriquecido);
+    // También enviar al emisor
+    socket.emit('nuevoMensajePrivado', mensajeEnriquecido);
+    
+    console.log(`✅ Mensaje privado entregado de @${emisor} a @${receptor}`);
+
+  } catch (error) {
+    console.error('❌ Error enviando mensaje privado:', error);
+    socket.emit('errorMensaje', { error: 'Error enviando mensaje: ' + error.message });
+  }
+});
 
   socket.on('disconnect', () => {
     console.log('🔌 Usuario desconectado:', socket.id);

@@ -5,7 +5,7 @@ class SessionManager {
         this.init();
     }
 
-    // ✅ DETECCIÓN CORREGIDA - SIN PUERTO PARA NGROK
+    // DETECCIÓN API
     getApiUrl() {
         const { hostname, protocol } = window.location;
         
@@ -44,12 +44,15 @@ class SessionManager {
 
     init() {
         document.addEventListener('DOMContentLoaded', () => {
+        // Solo verificar login en páginas de sesión
+        if (window.location.pathname.includes('sesion.html')) {
             if (this.isLoggedIn()) return;
-            
-            this.setupApplication();
-            this.injectGlobalStyles();
-            this.initializeFormAnimations();
-            this.testConnection();
+        }
+        
+        this.setupApplication();
+        this.injectGlobalStyles();
+        this.initializeFormAnimations();
+        this.testConnection();
         });
     }
 
@@ -108,30 +111,40 @@ class SessionManager {
     }
 
     isLoggedIn() {
-    // Si hay parámetro de logout, no redirigir
+    // Solo ejecutar esta lógica en páginas de sesión
+    if (!window.location.pathname.includes('sesion.html')) {
+        return false;
+    }
+    
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('logout') === 'true') {
         console.log('🚪 Sesión cerrada, no redirigir');
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuarioActivo');
         return false;
     }
     
     const token = localStorage.getItem('token');
     if (token) {
-        // Verificar que el token no esté expirado
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const now = Date.now() / 1000;
             
             if (payload.exp && payload.exp < now) {
-                console.log('❌ Token expirado');
+                console.log('❌ Token expirado en sesion.js');
                 localStorage.removeItem('token');
                 localStorage.removeItem('usuarioActivo');
                 return false;
             }
             
-            console.log('✅ Usuario autenticado, redirigiendo...');
-            window.location.href = 'principal.html';
+            console.log('✅ Usuario autenticado, redirigiendo a principal...');
+            setTimeout(() => {
+                if (!window.location.pathname.includes('principal.html')) {
+                    window.location.href = 'principal.html';
+                }
+            }, 500);
             return true;
+            
         } catch (error) {
             console.error('❌ Error verificando token:', error);
             localStorage.removeItem('token');
@@ -391,14 +404,9 @@ class SessionManager {
 
     handleLoginSuccess(data) {
         if (data.token) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('usuarioActivo', JSON.stringify(data.usuario));
-            
+            localStorage.setItem('token', data.token); // ✅ deja solo el token
             this.mostrarExito('¡Inicio de sesión exitoso!');
-            
-            setTimeout(() => {
-                window.location.href = 'principal.html';
-            }, 1000);
+            setTimeout(() => window.location.href = 'principal.html', 1000);
         } else {
             this.mostrarError('Token no recibido del servidor');
             this.mostrarCargando(false, 'loginBtn');
@@ -495,6 +503,53 @@ class SessionManager {
             return { existe: false };
         }
     }
+
+    async verifyAuth() {
+    // Si estamos en la página de sesión, no verificar autenticación
+    if (window.location.pathname.includes('sesion.html')) {
+        console.log('🔐 Página de sesión - omitiendo verificación');
+        return true; // ✅ Cambiado a true para evitar conflicto
+    }
+
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        console.log('❌ No hay token - redirigiendo a login');
+        this.redirectToLogin();
+        return false;
+    }
+
+    try {
+        // Verificar expiración del token
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const now = Date.now() / 1000;
+        
+        if (payload.exp && payload.exp < now) {
+            console.log('❌ Token expirado');
+            this.redirectToLogin();
+            return false;
+        }
+
+        // Verificar con el servidor
+        const response = await fetch(`${this.API_URL}/usuarioActual`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Token inválido');
+        }
+
+        console.log('✅ Usuario autenticado correctamente');
+        return true;
+
+    } catch (error) {
+        console.error('❌ Error verificando autenticación:', error);
+        this.redirectToLogin();
+        return false;
+    }
+}
 
     handleRegisterSuccess(usuario) {
         this.mostrarExito('¡Registro exitoso! Ahora puedes iniciar sesión.');

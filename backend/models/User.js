@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema({
   avatarFileId: {
     type: mongoose.Schema.Types.ObjectId,
     default: null
+  },
+  rol: {
+    type: String,
+    enum: ['usuario', 'moderador', 'admin'],
+    default: 'usuario'
   }
 }, {
   timestamps: true

@@ -11,7 +11,13 @@ const messageSchema = new mongoose.Schema({
   },
   contenido: {
     type: String,
-    required: true
+    required: true,
+    validate: {
+      validator: function(v) {
+        return v && v.trim().length > 0;
+      },
+      message: 'El mensaje no puede estar vacío'
+    }
   },
   fecha: {
     type: Date,
@@ -22,5 +28,8 @@ const messageSchema = new mongoose.Schema({
     default: false
   }
 });
+
+messageSchema.index({ emisor: 1, receptor: 1 });
+messageSchema.index({ fecha: -1 });
 
 export default mongoose.model('Message', messageSchema);

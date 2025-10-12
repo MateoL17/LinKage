@@ -810,6 +810,850 @@ body {
   gap: 4px;
 }
 
+/* ---- Estilos para el sistema de descubrimiento ---- */
+.discover-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid var(--morado);
+  object-fit: cover;
+  margin-bottom: 15px;
+}
+
+.no-users, .error-loading {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.no-users h3, .error-loading h3 {
+  color: var(--morado-claro);
+  margin-bottom: 15px;
+}
+
+.no-users p, .error-loading p {
+  color: #ccc;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.reload-users, .retry-load {
+  background: var(--morado);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.reload-users:hover, .retry-load:hover {
+  background: #7b39d1;
+  transform: scale(1.05);
+}
+
+/* ---- Mejoras para las sugerencias ---- */
+.discover-suggestions .suggestion {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.discover-suggestions .suggestion:hover {
+  border-color: var(--morado);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.suggestion img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--morado);
+}
+
+/* ---- Estilos para matches y conversaciones ---- */
+.match-badge {
+  background: var(--morado);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  margin-left: 8px;
+}
+
+.conversation.match {
+  border-left: 3px solid var(--morado);
+}
+
+.no-conversations {
+  text-align: center;
+  padding: 40px 20px;
+  color: #777;
+}
+
+.no-conversations h3 {
+  color: var(--morado-claro);
+  margin-bottom: 10px;
+}
+
+/* ---- Indicador de nuevo match ---- */
+.new-match-indicator {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4757;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Estilos para el sistema de mensajes ---- */
+.messages-container {
+  display: flex;
+  height: 70vh;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.conversations-sidebar {
+  width: 350px;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.conversations-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.no-chat-selected {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.no-chat-content {
+  text-align: center;
+  color: #777;
+}
+
+.no-chat-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.no-chat-content h3 {
+  color: var(--morado-claro);
+  margin-bottom: 10px;
+}
+
+/* Header del chat */
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.back-to-conversations {
+  background: none;
+  border: none;
+  color: var(--morado-claro);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin-right: 15px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.back-to-conversations:hover {
+  background: rgba(155, 93, 229, 0.1);
+}
+
+.chat-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-user-info .avatar {
+  width: 45px;
+  height: 45px;
+}
+
+.chat-user-info h3 {
+  margin: 0;
+  color: var(--texto);
+  font-size: 16px;
+}
+
+.status {
+  font-size: 12px;
+  color: #28a745;
+}
+
+/* Área de mensajes */
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.no-messages {
+  text-align: center;
+  color: #777;
+  margin-top: 50px;
+}
+
+/* Mensajes individuales */
+.message {
+  display: flex;
+  margin-bottom: 15px;
+  max-width: 70%;
+}
+
+.message.own {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message.other {
+  align-self: flex-start;
+}
+
+.message-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin: 0 10px;
+}
+
+.message-content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 15px;
+  padding: 12px 15px;
+  position: relative;
+  max-width: 100%;
+}
+
+.message.own .message-content {
+  background: var(--morado);
+  border-color: var(--morado);
+}
+
+.message-text {
+  margin: 0;
+  color: var(--texto);
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.message.own .message-text {
+  color: white;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #777;
+  margin-top: 5px;
+  text-align: right;
+}
+
+.message.own .message-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Input del chat */
+.chat-input-container {
+  padding: 20px;
+  border-top: 1px solid #333;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chat-input {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.chat-input textarea {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 12px 15px;
+  color: var(--texto);
+  font-family: 'Poppins', sans-serif;
+  resize: none;
+  min-height: 50px;
+  max-height: 120px;
+  outline: none;
+}
+
+.chat-input textarea:focus {
+  border-color: var(--morado);
+}
+
+.chat-input button {
+  background: var(--morado);
+  border: none;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.chat-input button:hover:not(:disabled) {
+  background: #7b39d1;
+}
+
+.chat-input button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Badge para nuevos mensajes */
+.unread-badge {
+  background: var(--morado);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+
+/* ---- Estilos para el sistema de descubrimiento mejorado ---- */
+.like-badge {
+  background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 10px 0;
+  display: inline-block;
+  animation: pulse-heart 2s infinite;
+  box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+}
+
+@keyframes pulse-heart {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Mejoras para la tarjeta de descubrimiento ---- */
+.profile-card {
+  position: relative;
+}
+
+.profile-card .discover-avatar {
+  border: 3px solid var(--morado);
+  transition: all 0.3s ease;
+}
+
+.profile-card.priority .discover-avatar {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+}
+
+/* ---- Indicador de nuevo like ---- */
+.new-like-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff4757;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* ---- CORRECCIÓN PARA AVATARES EN EL CHAT ---- */
+
+/* Avatar en el header del chat */
+.chat-user-info .avatar {
+  width: 45px !important;
+  height: 45px !important;
+  border-radius: 50%;
+  border: 2px solid var(--morado);
+  object-fit: cover;
+}
+
+/* Avatar en los mensajes del chat */
+.message-avatar {
+  width: 35px !important;
+  height: 35px !important;
+  border-radius: 50%;
+  border: 2px solid var(--morado);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Avatar en la lista de conversaciones */
+.conversation .avatar {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50%;
+  border: 2px solid var(--morado);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Asegurar que los avatares mantengan su proporción */
+.avatar, .message-avatar, .discover-avatar {
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+}
+
+/* ---- MEJORAS ESPECÍFICAS PARA EL SISTEMA DE CHAT ---- */
+
+/* Contenedor de mensajes mejorado */
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Mensajes con mejor espaciado */
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  max-width: 80%;
+  animation: messageAppear 0.3s ease;
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mensajes propios alineados a la derecha */
+.message.own {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+/* Mensajes de otros alineados a la izquierda */
+.message.other {
+  align-self: flex-start;
+}
+
+/* Contenido del mensaje mejorado */
+.message-content {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 12px 16px;
+  max-width: 100%;
+  word-wrap: break-word;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mensajes propios con color morado */
+.message.own .message-content {
+  background: var(--morado);
+  border-color: var(--morado);
+  color: white;
+}
+
+/* Texto del mensaje */
+.message-text {
+  margin: 0;
+  color: var(--texto);
+  line-height: 1.4;
+  font-size: 14px;
+}
+
+.message.own .message-text {
+  color: white;
+}
+
+/* Tiempo del mensaje */
+.message-time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+  text-align: right;
+}
+
+.message.other .message-time {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Input del chat mejorado */
+.chat-input {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 0;
+}
+
+.chat-input textarea {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 12px 18px;
+  color: var(--texto);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  resize: none;
+  min-height: 50px;
+  max-height: 120px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.chat-input textarea:focus {
+  border-color: var(--morado);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.chat-input button {
+  background: var(--morado);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.chat-input button:hover:not(:disabled) {
+  background: #7b39d1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(155, 93, 229, 0.3);
+}
+
+.chat-input button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Header del chat mejorado */
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.back-to-conversations {
+  background: none;
+  border: none;
+  color: var(--morado-claro);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-to-conversations:hover {
+  background: rgba(155, 93, 229, 0.1);
+  transform: scale(1.1);
+}
+
+.chat-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.chat-user-info h3 {
+  margin: 0;
+  color: var(--texto);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.status {
+  font-size: 12px;
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #28a745;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Estados vacíos mejorados */
+.no-messages {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 60px;
+  font-style: italic;
+}
+
+.no-chat-selected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 15px;
+}
+
+.no-chat-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 300px;
+}
+
+.no-chat-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.no-chat-content h3 {
+  color: var(--morado-claro);
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.no-chat-content p {
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Badge de match en conversaciones */
+.match-badge {
+  background: linear-gradient(45deg, var(--morado), #ff6b6b);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 8px;
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(155, 93, 229, 0.5); }
+  50% { box-shadow: 0 0 15px rgba(155, 93, 229, 0.8); }
+}
+
+/* Mejoras responsive para el chat */
+@media (max-width: 768px) {
+  .messages-container {
+    height: calc(100vh - 120px);
+  }
+  
+  .conversations-sidebar {
+    width: 100%;
+  }
+  
+  .chat-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background: var(--gris-oscuro);
+  }
+  
+  .message {
+    max-width: 90%;
+  }
+  
+  .chat-input {
+    padding: 0 10px 10px;
+  }
+}
+
+/* Scrollbar personalizada para el chat */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: var(--morado);
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: var(--morado-claro);
+}
+
+/* ---- Estados de carga y error para el chat ---- */
+.loading-messages {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.loading-messages p {
+  margin: 0;
+  font-style: italic;
+}
+
+.error-messages {
+  text-align: center;
+  padding: 40px 20px;
+  color: #ff6b6b;
+}
+
+.error-messages p {
+  margin: 0;
+}
+
+/* ---- Mejoras visuales para el chat ---- */
+.chat-area {
+  animation: chatSlideIn 0.3s ease;
+}
+
+@keyframes chatSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ---- Estilos para el input de mensaje ---- */
+.chat-input-container {
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.chat-input {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  max-width: 100%;
+}
+
+.chat-input textarea {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 12px 18px;
+  color: var(--texto);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  resize: none;
+  min-height: 50px;
+  max-height: 120px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.chat-input textarea:focus {
+  border-color: var(--morado);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba(155, 93, 229, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .messages-container {
+    flex-direction: column;
+    height: 80vh;
+  }
+  
+  .conversations-sidebar {
+    width: 100%;
+    height: 40%;
+    border-right: none;
+    border-bottom: 1px solid #333;
+  }
+  
+  .chat-area {
+    height: 60%;
+  }
+}
+
 /* ---- Scrollbar personalizada ---- */
 ::-webkit-scrollbar {
   width: 6px;
@@ -820,53 +1664,152 @@ body {
   border-radius: 4px;
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 1400px) {
-  body {
-    grid-template-columns: minmax(200px, 1fr) minmax(350px, 2fr) minmax(230px, 1fr);
-  }
+/* CORREGIR: Estilos para avatares en mensajes */
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-@media (max-width: 1200px) {
-  body {
-    grid-template-columns: minmax(180px, 1fr) minmax(300px, 2fr) minmax(200px, 1fr);
-  }
+.message.own {
+  flex-direction: row-reverse;
 }
 
-@media (max-width: 1024px) {
-  body {
-    grid-template-columns: minmax(160px, 1fr) minmax(280px, 2fr) minmax(180px, 1fr);
-  }
+.message-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-@media (max-width: 900px) {
-  .discover-panel {
-    display: none;
-  }
-  
-  body {
-    grid-template-columns: minmax(160px, 1fr) minmax(300px, 3fr);
-  }
+.message-content {
+  max-width: 70%;
+  background: var(--morado-claro);
+  padding: 10px 15px;
+  border-radius: 18px;
+  position: relative;
 }
 
-@media (max-width: 768px) {
-  body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-  
-  .sidebar {
-    order: 1;
-    width: 100%;
-    min-width: unset;
-    max-width: unset;
-  }
-  
-  .main-content {
-    order: 2;
-    padding: 15px;
-    min-width: unset;
-  }
+.message.own .message-content {
+  background: var(--morado);
+  color: white;
+}
+
+.message-text {
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 5px;
+}
+
+/* ===== CORRECCIONES PARA EL SISTEMA DE CHAT ===== */
+
+/* Asegurar que el área de chat sea visible */
+.chat-area {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+}
+
+/* Asegurar que los mensajes sean visibles */
+.chat-messages {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 200px !important;
+  overflow-y: auto !important;
+}
+
+/* Mensajes individuales - CORREGIDO */
+.message {
+  display: flex !important;
+  align-items: flex-start !important;
+  margin-bottom: 15px !important;
+  max-width: 80% !important;
+  animation: messageAppear 0.3s ease !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.message.own {
+  align-self: flex-end !important;
+  flex-direction: row-reverse !important;
+}
+
+.message.other {
+  align-self: flex-start !important;
+}
+
+/* Contenedor de mensajes - VISIBLE */
+.message-content {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 18px !important;
+  padding: 12px 16px !important;
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.message.own .message-content {
+  background: var(--morado) !important;
+  border-color: var(--morado) !important;
+}
+
+/* Texto del mensaje visible */
+.message-text {
+  margin: 0 !important;
+  color: var(--texto) !important;
+  line-height: 1.4 !important;
+  font-size: 14px !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.message.own .message-text {
+  color: white !important;
+}
+
+/* Input del chat visible */
+.chat-input-container {
+  display: block !important;
+  visibility: visible !important;
+}
+
+.chat-input {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+/* Estado cuando no hay chat seleccionado */
+.no-chat-selected {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 1 !important;
+}
+
+/* Ocultar área de chat inicialmente */
+.chat-area[style*="display: none"] {
+  display: none !important;
+}
+
+.chat-area:not([style*="display: none"]) {
+  display: flex !important;
+}
+
+/* Forzar visibilidad en debug */
+.debug-messages .message {
+  border: 2px solid red !important;
+  background: yellow !important;
+  color: black !important;
 }
 
 /* ---- Animaciones ---- */
@@ -895,4 +1838,190 @@ body {
 /* ---- Elementos ocultos ---- */
 .discover {
   display: none;
+}
+
+/* ===== CORRECCIÓN DE EMERGENCIA PARA EL CHAT ===== */
+
+/* Forzar visibilidad del área de chat */
+.chat-area {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* Forzar visibilidad del contenedor de mensajes */
+.chat-messages {
+  display: block !important;
+  flex: 1 !important;
+  min-height: 300px !important;
+  max-height: 60vh !important;
+  overflow-y: auto !important;
+  padding: 20px !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Forzar visibilidad de los mensajes */
+.message {
+  display: flex !important;
+  align-items: flex-start !important;
+  margin-bottom: 15px !important;
+  max-width: 80% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.message.own {
+  align-self: flex-end !important;
+  flex-direction: row-reverse !important;
+}
+
+.message.other {
+  align-self: flex-start !important;
+}
+
+/* Forzar visibilidad del contenido del mensaje */
+.message-content {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 18px !important;
+  padding: 12px 16px !important;
+  max-width: 100% !important;
+}
+
+.message.own .message-content {
+  background: var(--morado) !important;
+  border-color: var(--morado) !important;
+}
+
+/* Forzar visibilidad del texto */
+.message-text {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0 !important;
+  color: var(--texto) !important;
+  line-height: 1.4 !important;
+}
+
+.message.own .message-text {
+  color: white !important;
+}
+
+/* Input visible */
+.chat-input-container {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.chat-input {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* ===== CORRECCIÓN DEFINITIVA - SISTEMA DE CHAT ===== */
+.chat-area {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.chat-messages {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 400px !important;
+  max-height: 60vh !important;
+  overflow-y: auto !important;
+  padding: 20px !important;
+  gap: 15px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.message {
+  display: flex !important;
+  align-items: flex-start !important;
+  margin-bottom: 15px !important;
+  max-width: 80% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  animation: messageAppear 0.3s ease !important;
+}
+
+.message.own {
+  align-self: flex-end !important;
+  flex-direction: row-reverse !important;
+}
+
+.message.other {
+  align-self: flex-start !important;
+}
+
+.message-content {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(155, 93, 229, 0.3) !important;
+  border-radius: 18px !important;
+  padding: 12px 16px !important;
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+}
+
+.message.own .message-content {
+  background: var(--morado) !important;
+  border-color: var(--morado) !important;
+}
+
+.message-text {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin: 0 !important;
+  color: white !important;
+  line-height: 1.4 !important;
+  font-size: 14px !important;
+}
+
+.message.other .message-text {
+  color: var(--texto) !important;
+}
+
+.message-time {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  margin-top: 5px !important;
+  text-align: right !important;
+}
+
+.message.other .message-time {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Debug visual */
+.debug-highlight {
+  border: 2px solid #00ff00 !important;
+  background: rgba(0, 255, 0, 0.1) !important;
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

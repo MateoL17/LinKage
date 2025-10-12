@@ -7,6 +7,76 @@
   <link rel="icon" type="image/png" href="/img/LinKageLogo.png">
   <link rel="stylesheet" href="/css/principal.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="js/auth.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🔐 Verificando autenticación en principal.html...');
+    
+    // Verificar si hay un parámetro de logout
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('logout') === 'true') {
+        console.log('🚪 Logout detectado, limpiando sesión');
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuarioActivo');
+        window.location.href = 'sesion.html';
+        return;
+    }
+
+    // Usar SOLO authManager para verificar
+    const isAuthenticated = await authManager.verifyAuth();
+    if (!isAuthenticated) {
+        console.log('❌ No autenticado, redirigiendo...');
+        return;
+    }
+    
+    console.log('✅ Usuario autenticado, cargando aplicación...');
+    
+    // Continuar con la carga normal
+    cargarDatosUsuario();
+});
+
+    async function cargarDatosUsuario() {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${authManager.API_URL}/usuarioActual`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const usuario = await response.json();
+                console.log('👤 Datos del usuario:', usuario);
+                // Actualizar la UI con los datos del usuario
+                actualizarUIUsuario(usuario);
+            }
+        } catch (error) {
+            console.error('Error cargando datos del usuario:', error);
+        }
+    }
+
+    function actualizarUIUsuario(usuario) {
+        // Actualizar elementos de la UI con los datos del usuario
+        const usernameElements = document.querySelectorAll('.username');
+        usernameElements.forEach(el => {
+            el.textContent = `@${usuario.usuario}`;
+        });
+        
+        const avatarElements = document.querySelectorAll('.avatar, .logoMain, .avatar-large');
+        avatarElements.forEach(el => {
+            if (usuario.foto && usuario.foto !== '/img/perfil_default.png') {
+                el.src = usuario.foto;
+            }
+        });
+        
+        const bioElements = document.querySelectorAll('.profile-bio');
+        bioElements.forEach(el => {
+            if (usuario.biografia) {
+                el.textContent = usuario.biografia;
+            }
+        });
+    }
+</script>
 </head>
 
 <body>
@@ -76,30 +146,54 @@
     </section>
 
     <!-- Sección Mensajes -->
-    <section class="content-section" id="mensajes">
-      <div class="messages-header">
-        <h2>Tus Conversaciones</h2>
-      </div>
+<section class="content-section" id="mensajes">
+  <div class="messages-header">
+    <h2>Tus Conversaciones</h2>
+  </div>
+  
+  <div class="messages-container">
+    <!-- Lista de conversaciones (lado izquierdo) -->
+    <div class="conversations-sidebar">
       <div class="conversations-list">
-        <!-- Lista de conversaciones -->
-        <div class="conversation">
-          <img src="/img/perfil_default.png" alt="Usuario" class="avatar">
-          <div class="conversation-info">
-            <h3>@sofiadev</h3>
-            <p>Último mensaje: ¡Hola! 👋</p>
+        <!-- Las conversaciones se cargarán aquí dinámicamente -->
+      </div>
+    </div>
+    
+    <!-- Área de chat (lado derecho) - DEBE ESTAR OCULTO INICIALMENTE -->
+    <div class="chat-area" id="chatArea" style="display: none;">
+      <div class="chat-header">
+        <button class="back-to-conversations">←</button>
+        <div class="chat-user-info">
+          <img id="chatUserAvatar" src="/img/perfil_default.png" alt="Usuario" class="avatar">
+          <div>
+            <h3 id="chatUserName">@usuario</h3>
+            <span id="chatUserStatus" class="status">En línea</span>
           </div>
-          <span class="time">12:30</span>
-        </div>
-        <div class="conversation">
-          <img src="/img/perfil_default.png" alt="Usuario" class="avatar">
-          <div class="conversation-info">
-            <h3>@mateolink</h3>
-            <p>Último mensaje: ¡Hey! ¿Cómo va todo?</p>
-          </div>
-          <span class="time">11:45</span>
         </div>
       </div>
-    </section>
+      
+      <div class="chat-messages" id="chatMessages">
+        <!-- Los mensajes se cargarán aquí -->
+      </div>
+      
+      <div class="chat-input-container">
+        <div class="chat-input">
+          <textarea id="messageInput" placeholder="Escribe un mensaje..." rows="1"></textarea>
+          <button id="sendMessageBtn">Enviar</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Estado cuando no hay chat seleccionado - VISIBLE INICIALMENTE -->
+    <div class="no-chat-selected" id="noChatSelected">
+      <div class="no-chat-content">
+        <div class="no-chat-icon">💬</div>
+        <h3>Selecciona una conversación</h3>
+        <p>Elige una conversación de la lista para empezar a chatear</p>
+      </div>
+    </div>
+  </div>
+</section>
 
     <!-- Sección Perfil -->
     <section class="content-section" id="perfil">
@@ -231,7 +325,7 @@
         <div class="suggestion">
           <img src="/img/perfil_default.png" alt="Perfil">
           <div class="suggestion-info">
-            <h4>@mateo_link</h4>
+            <h4>@luisLink12</h4>
             <p>Diseñador UI/UX</p>
           </div>
         </div>

@@ -1,10 +1,10 @@
 import express from 'express';
-import jwt from 'jsonwebtoken'; // ← IMPORTAR DIRECTAMENTE
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 const router = express.Router();
 
-// Middleware de autenticación CORREGIDO
+// Middleware de autenticación
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -13,7 +13,6 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Token requerido' });
   }
 
-  // Usar jwt directamente
   jwt.verify(token, process.env.JWT_SECRET || 'secreto_temporal', (err, user) => {
     if (err) {
       console.error('❌ Error verificando token:', err);
@@ -25,6 +24,98 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Ruta para obtener datos del perfil del usuario autenticado
+router.get('/perfil', authenticateToken, async (req, res) => {
+  try {
+    const usuario = await User.findById(req.user.id);
+    
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      usuario: usuario.usuario,
+      email: usuario.email,
+      foto: usuario.foto,
+      biografia: usuario.biografia,
+      fechaRegistro: usuario.fechaRegistro
+    });
+  } catch (error) {
+    console.error('Error obteniendo perfil:', error);
+    res.status(500).json({ error: 'Error obteniendo perfil: ' + error.message });
+  }
+});
+
+// Ruta para obtener datos del usuario "general" (si es necesario)
+router.get('/general', authenticateToken, async (req, res) => {
+  try {
+    // Crear un perfil "general" simulado
+    res.json({
+      usuario: 'general',
+      foto: '/img/perfil_default.png',
+      biografia: 'Chat general de la comunidad',
+      fechaRegistro: new Date()
+    });
+  } catch (error) {
+    console.error('Error obteniendo perfil general:', error);
+    res.status(500).json({ error: 'Error obteniendo perfil general' });
+  }
+});
+
+// Ruta para obtener usuario por nombre de usuario - NUEVA RUTA
+router.get('/usuarios/:username', authenticateToken, async (req, res) => {
+  try {
+    const { username } = req.params;
+    
+    console.log('🔍 Buscando usuario:', username);
+
+    const usuario = await User.findOne({ usuario: username });
+    
+    if (!usuario) {
+      console.log('❌ Usuario no encontrado:', username);
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    console.log('✅ Usuario encontrado:', usuario.usuario);
+
+    res.json({
+      usuario: usuario.usuario,
+      foto: usuario.foto,
+      biografia: usuario.biografia,
+      email: usuario.email,
+      fechaRegistro: usuario.fechaRegistro
+    });
+  } catch (error) {
+    console.error('❌ Error obteniendo usuario:', error);
+    res.status(500).json({ error: 'Error obteniendo usuario: ' + error.message });
+  }
+});
+
+// Ruta alternativa para obtener perfil de otro usuario
+router.get('/perfil/:username', authenticateToken, async (req, res) => {
+  try {
+    const { username } = req.params;
+    
+    console.log('🔍 Buscando perfil de:', username);
+
+    const usuario = await User.findOne({ usuario: username });
+    
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      usuario: usuario.usuario,
+      foto: usuario.foto,
+      biografia: usuario.biografia,
+      fechaRegistro: usuario.fechaRegistro
+    });
+  } catch (error) {
+    console.error('Error obteniendo perfil de usuario:', error);
+    res.status(500).json({ error: 'Error obteniendo perfil: ' + error.message });
+  }
+});
+
 // Ruta para actualizar perfil
 router.put('/perfil', authenticateToken, async (req, res) => {
   try {
@@ -34,18 +125,15 @@ router.put('/perfil', authenticateToken, async (req, res) => {
     console.log('📝 Actualizando perfil para usuario ID:', usuarioId);
     console.log('📝 Datos recibidos:', { email, biografia });
 
-    // Validar datos requeridos
     if (!email) {
       return res.status(400).json({ error: 'El email es requerido' });
     }
 
-    // Verificar que el usuario existe
     const usuarioExistente = await User.findById(usuarioId);
     if (!usuarioExistente) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Actualizar en la base de datos
     const usuarioActualizado = await User.findByIdAndUpdate(
       usuarioId,
       { 
@@ -74,28 +162,6 @@ router.put('/perfil', authenticateToken, async (req, res) => {
     }
     
     res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
-  }
-});
-
-// Ruta para obtener datos del perfil
-router.get('/perfil', authenticateToken, async (req, res) => {
-  try {
-    const usuario = await User.findById(req.user.id);
-    
-    if (!usuario) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    res.json({
-      usuario: usuario.usuario,
-      email: usuario.email,
-      foto: usuario.foto,
-      biografia: usuario.biografia,
-      fechaRegistro: usuario.fechaRegistro
-    });
-  } catch (error) {
-    console.error('Error obteniendo perfil:', error);
-    res.status(500).json({ error: 'Error obteniendo perfil: ' + error.message });
   }
 });
 
