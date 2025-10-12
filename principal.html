@@ -22,7 +22,7 @@
     <div class="user-avatar">
       <img src="/img/perfil_default.png" alt="Usuario" class="logoMain">
       <div class="user-info">
-        <span class="username">@usuario</span> <!-- Este es el elemento que se debe actualizar -->
+        <span class="username">@usuario</span>
       </div>
     </div>
 
@@ -52,20 +52,6 @@
           <!-- Posts cargados dinámicamente -->
         </div>
       </div>
-
-      <!-- Sección tipo "Tinder" / sugerencias -->
-      <section class="discover">
-        <h2>Descubre nuevas conexiones</h2>
-        <div class="profile-card">
-          <img src="/img/perfil_default.png" alt="Perfil">
-          <h3>Alex Rivera, 22</h3>
-          <p>Amante de la música y los videojuegos 🎮</p>
-          <div class="buttons">
-            <button class="dislike">✖</button>
-            <button class="like">❤</button>
-          </div>
-        </div>
-      </section>
     </section>
 
     <!-- Sección Mensajes -->
@@ -187,31 +173,45 @@
   </section>
   </main>
 
-  <!-- Panel de chat tipo Discord -->
-  <aside class="chat-panel">
-    <div class="chat-header">
-      <h2>Chat</h2>
-      <button class="toggle-chat">−</button>
+  <!-- Panel de descubrimiento tipo Tinder -->
+  <aside class="discover-panel">
+    <div class="discover-header">
+      <h2>Descubre nuevas conexiones</h2>
     </div>
-    <div class="chat-box">
-      <div class="message">
-        <img src="/img/perfil_default.png" alt="Usuario" class="avatar-small">
-        <div class="message-content">
-          <strong>@sofiadev:</strong> ¡Hola! 👋
-          <small>12:30 PM</small>
+    <div class="discover-content">
+      <div class="profile-card">
+        <img src="/img/perfil_default.png" alt="Perfil">
+        <h3>Alex Rivera, 22</h3>
+        <p>Amante de la música y los videojuegos 🎮</p>
+        <div class="discover-buttons">
+          <button class="dislike">✖</button>
+          <button class="like">❤</button>
         </div>
       </div>
-      <div class="message">
-        <img src="/img/perfil_default.png" alt="Usuario" class="avatar-small">
-        <div class="message-content">
-          <strong>@mateolink:</strong> ¡Hey! ¿Cómo va todo?
-          <small>12:31 PM</small>
+      <div class="discover-suggestions">
+        <h3>Más sugerencias</h3>
+        <div class="suggestion">
+          <img src="/img/perfil_default.png" alt="Perfil">
+          <div class="suggestion-info">
+            <h4>@sofia_dev</h4>
+            <p>Desarrolladora Full Stack</p>
+          </div>
+        </div>
+        <div class="suggestion">
+          <img src="/img/perfil_default.png" alt="Perfil">
+          <div class="suggestion-info">
+            <h4>@mateo_link</h4>
+            <p>Diseñador UI/UX</p>
+          </div>
+        </div>
+        <div class="suggestion">
+          <img src="/img/perfil_default.png" alt="Perfil">
+          <div class="suggestion-info">
+            <h4>@laura_art</h4>
+            <p>Artista digital</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="send-message">
-      <input type="text" placeholder="Escribe un mensaje...">
-      <button>Enviar</button>
     </div>
   </aside>
 

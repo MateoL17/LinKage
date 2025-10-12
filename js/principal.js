@@ -34,6 +34,7 @@ class SocketManager {
     constructor() {
         this.socket = null;
         this.SOCKET_URL = this.getSocketUrl();
+        this.postIdsProcesados = new Set();
     }
 
     getSocketUrl() {
@@ -72,9 +73,25 @@ class SocketManager {
                 agregarMensajeAlChat(mensaje);
             });
 
-            // Escuchar nuevos posts
+            // MEJORADO: Escuchar nuevos posts - SIEMPRE AL INICIO
             this.socket.on('nuevoPost', (post) => {
-                agregarPostAlFeed(post);
+                console.log('📨 Nuevo post recibido via WebSocket:', post.contenido, 'fecha:', new Date(post.fecha).toLocaleString());
+                
+                // Verificar si ya procesamos este post
+                if (post._id && this.postIdsProcesados.has(post._id)) {
+                    console.log('📝 Post ya procesado, omitiendo...');
+                    return;
+                }
+                
+                if (post._id) {
+                    this.postIdsProcesados.add(post._id);
+                }
+                
+                // Reemplazar post temporal si existe
+                reemplazarPostTemporal(post);
+                
+                // Agregar post real SIEMPRE AL INICIO
+                agregarPostAlFeed(post, true);
             });
 
             this.socket.on('connect', () => {
@@ -216,7 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   console.log('👤 Usuario activo al cargar:', usuarioActivo);
 
-  // Actualizar avatares inmediatamente con datos de localStorage
+  // Actualizar avatares inmediatamente
   if (usuarioActivo.foto) {
     actualizarAvataresEnInterfaz(corregirUrlAvatar(usuarioActivo.foto));
   }
@@ -224,11 +241,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Cargar datos actualizados del usuario
   await cargarDatosUsuario(usuarioActivo);
   
-  // Conectar WebSocket usando la nueva clase
+  // Conectar WebSocket
   window.socketManager.connect(usuarioActivo.usuario);
 
-  // Cargar datos iniciales
+  // Cargar posts iniciales
+  console.log('🔄 Cargando posts iniciales...');
   await cargarPosts();
+  
+  // Verificar el orden después de cargar
+  setTimeout(verificarOrdenPosts, 1000);
+  
   await cargarUsuariosParaChat();
   configurarEventos();
   
@@ -397,28 +419,51 @@ async function cargarPosts() {
       const posts = await response.json();
       const postsContainer = document.querySelector('.posts-container');
       
-      // Limpiar posts existentes
+      // Limpiar posts existentes COMPLETAMENTE
       if (postsContainer) {
         postsContainer.innerHTML = '';
       }
 
-      // Agregar posts
-      posts.forEach(post => {
-        // Asegurarse de que el post tenga la foto del usuario
+      // ORDENAR POSTS: más recientes PRIMERO (orden descendente)
+      const postsOrdenados = posts.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+      console.log('📝 Posts cargados:', postsOrdenados.length);
+      console.log('📅 Orden (más reciente primero):', postsOrdenados.map(p => ({
+        contenido: p.contenido,
+        fecha: new Date(p.fecha).toLocaleString()
+      })));
+
+      // ✅ CORREGIDO: Agregar posts en orden INVERSO (más antiguos primero, luego más recientes)
+      // Esto es porque al agregar al inicio, el orden se invierte
+      for (let i = postsOrdenados.length - 1; i >= 0; i--) {
+        const post = postsOrdenados[i];
+        
         if (!post.usuarioFoto) {
-          // Si no tiene foto, intentar obtenerla del usuario
-          obtenerFotoUsuario(post.usuario).then(foto => {
-            post.usuarioFoto = foto;
-            agregarPostAlFeed(post);
-          });
-        } else {
-          agregarPostAlFeed(post);
+          const foto = await obtenerFotoUsuario(post.usuario);
+          post.usuarioFoto = foto;
         }
-      });
+        
+        agregarPostAlFeed(post, true); // TRUE = agregar al inicio
+      }
     }
   } catch (error) {
     console.error('Error cargando posts:', error);
   }
+}
+
+// FUNCIÓN PARA VERIFICAR EL ORDEN ACTUAL
+function verificarOrdenPosts() {
+  const postsContainer = document.querySelector('.posts-container');
+  if (!postsContainer) return;
+  
+  const posts = postsContainer.querySelectorAll('.post');
+  console.log('📊 Verificando orden actual de posts:');
+  
+  posts.forEach((post, index) => {
+    const contenido = post.querySelector('p').textContent;
+    const fecha = post.querySelector('small').textContent;
+    console.log(`   ${index + 1}. ${contenido} - ${fecha}`);
+  });
 }
 
 // FUNCIÓN AUXILIAR PARA OBTENER FOTO DE USUARIO
@@ -465,7 +510,10 @@ async function cargarPostsUsuario() {
           return;
         }
 
-        posts.forEach(post => {
+        // Ordenar posts del usuario por fecha (más recientes primero)
+        const postsOrdenados = posts.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+        postsOrdenados.forEach(post => {
           const postElement = document.createElement('div');
           postElement.className = 'post';
           postElement.innerHTML = `
@@ -486,13 +534,22 @@ async function cargarPostsUsuario() {
 }
 
 // FUNCIÓN PARA AGREGAR POST AL FEED
-function agregarPostAlFeed(post) {
+function agregarPostAlFeed(post, agregarAlInicio = true) {
   const postsContainer = document.querySelector('.posts-container');
   
-  if (!postsContainer) return;
-  
+  if (!postsContainer) {
+    console.error('❌ No se encontró el contenedor de posts');
+    return;
+  }
+
+  console.log('➕ Agregando post:', post.contenido, 'al inicio:', agregarAlInicio, 'fecha:', new Date(post.fecha).toLocaleString());
+
   const postElement = document.createElement('div');
   postElement.className = 'post';
+  if (post.temporal) {
+    postElement.classList.add('temporal');
+  }
+  
   postElement.innerHTML = `
     <img src="${corregirUrlAvatar(post.usuarioFoto, post.usuario)}" alt="${post.usuario}" class="avatar">
     <div class="post-content">
@@ -501,8 +558,15 @@ function agregarPostAlFeed(post) {
       <small>${new Date(post.fecha).toLocaleString()}</small>
     </div>
   `;
+
+  // SIEMPRE agregar nuevos posts al INICIO
+  if (agregarAlInicio && postsContainer.firstChild) {
+    postsContainer.insertBefore(postElement, postsContainer.firstChild);
+  } else {
+    postsContainer.appendChild(postElement);
+  }
   
-  postsContainer.appendChild(postElement);
+  console.log('✅ Post agregado correctamente');
 }
 
 // FUNCIÓN PARA CARGAR CONVERSACIONES
@@ -614,6 +678,23 @@ async function cargarUsuariosParaChat() {
 async function enviarPost(contenido) {
   try {
     const token = localStorage.getItem('token');
+    const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
+    
+    console.log('📤 Enviando post:', contenido);
+
+    // 1. Crear post temporal inmediatamente (para mejor UX)
+    const postTemporal = {
+      usuario: usuarioActivo.usuario,
+      usuarioFoto: usuarioActivo.foto,
+      contenido: contenido,
+      fecha: new Date().toISOString(),
+      temporal: true
+    };
+    
+    // 2. Agregar post temporal AL INICIO del feed inmediatamente
+    agregarPostAlFeed(postTemporal, true);
+    
+    // 3. Enviar al servidor
     const response = await fetch(`${API_URL}/posts`, {
       method: 'POST',
       headers: {
@@ -629,15 +710,51 @@ async function enviarPost(contenido) {
     }
 
     const nuevoPost = await response.json();
-    console.log('Post enviado:', nuevoPost);
+    console.log('✅ Post enviado al servidor:', nuevoPost);
     
-    // Agregar el post al feed inmediatamente
-    agregarPostAlFeed(nuevoPost);
+    // 4. El WebSocket se encargará de actualizar el post temporal con el real
+    // No necesitamos hacer nada más aquí
     
   } catch (error) {
-    console.error('Error:', error);
-    alert('Error enviando el post: ' + error.message);
+    console.error('❌ Error enviando post:', error);
+    
+    // Eliminar post temporal en caso de error
+    eliminarPostTemporal(contenido);
+    
+    mostrarError('Error enviando el post: ' + error.message);
   }
+}
+
+// FUNCIÓN PARA ELIMINAR POST TEMPORAL
+function eliminarPostTemporal(contenido) {
+  const postsContainer = document.querySelector('.posts-container');
+  const posts = postsContainer.querySelectorAll('.post.temporal');
+  
+  posts.forEach(post => {
+    const postContent = post.querySelector('p').textContent;
+    if (postContent === contenido) {
+      post.remove();
+      console.log('🗑️ Post temporal eliminado por error');
+    }
+  });
+}
+
+function reemplazarPostTemporal(postReal) {
+  const postsContainer = document.querySelector('.posts-container');
+  const postsTemporales = postsContainer.querySelectorAll('.post.temporal');
+  
+  const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
+  
+  // Solo reemplazar si el post temporal es del mismo usuario
+  postsTemporales.forEach(postTemp => {
+    const usuarioTemp = postTemp.querySelector('h3').textContent.replace('@', '');
+    const contenidoTemp = postTemp.querySelector('p').textContent;
+    
+    if (usuarioTemp === usuarioActivo.usuario && contenidoTemp === postReal.contenido) {
+      console.log('🔄 Reemplazando post temporal con post real');
+      postTemp.remove();
+    }
+  });
 }
 
 // FUNCIÓN PARA ENVIAR MENSAJE
@@ -856,11 +973,27 @@ function configurarEventos() {
   const postTextarea = document.querySelector('.create-post textarea');
   
   if (crearPostBtn && postTextarea) {
-    crearPostBtn.addEventListener('click', () => {
+    crearPostBtn.addEventListener('click', async () => {
       const contenido = postTextarea.value.trim();
       if (contenido) {
-        enviarPost(contenido);
+        // Limpiar textarea inmediatamente
         postTextarea.value = '';
+        
+        // Deshabilitar botón temporalmente
+        crearPostBtn.disabled = true;
+        crearPostBtn.textContent = 'Publicando...';
+        
+        try {
+          await enviarPost(contenido);
+        } catch (error) {
+          console.error('Error:', error);
+        } finally {
+          // Rehabilitar botón
+          setTimeout(() => {
+            crearPostBtn.disabled = false;
+            crearPostBtn.textContent = 'Publicar';
+          }, 2000);
+        }
       } else {
         alert('Por favor, escribe algo para publicar.');
       }
@@ -910,12 +1043,12 @@ function configurarEventos() {
 
 // ✅ FUNCIÓN PARA CONFIGURAR BOTONES DE DESCUBRIR
 function configurarBotonesDescubrir() {
-  const likeBtn = document.querySelector('.discover .like');
-  const dislikeBtn = document.querySelector('.discover .dislike');
+  const likeBtn = document.querySelector('.discover-panel .like');
+  const dislikeBtn = document.querySelector('.discover-panel .dislike');
   
   if (likeBtn) {
     likeBtn.addEventListener('click', () => {
-      alert('❤ ¡Te gusta este perfil!');
+      mostrarExito('❤ ¡Te gusta este perfil!');
       // Aquí podrías implementar la lógica para guardar el like
       cargarNuevoPerfilDescubrir();
     });
@@ -923,7 +1056,7 @@ function configurarBotonesDescubrir() {
   
   if (dislikeBtn) {
     dislikeBtn.addEventListener('click', () => {
-      alert('✖ No te interesa este perfil');
+      mostrarAdvertencia('✖ No te interesa este perfil');
       // Aquí podrías implementar la lógica para guardar el dislike
       cargarNuevoPerfilDescubrir();
     });
@@ -934,22 +1067,27 @@ function configurarBotonesDescubrir() {
 function cargarNuevoPerfilDescubrir() {
   const profileCard = document.querySelector('.profile-card');
   if (profileCard) {
+    const nombres = ['Sofia Martinez', 'Mateo Gonzalez', 'Laura Rodriguez', 'Carlos Lopez'];
+    const edades = [22, 25, 24, 23];
+    const intereses = ['Amante de la música y los videojuegos 🎮', 'Desarrollador Full Stack 💻', 'Artista digital 🎨', 'Fotógrafo y viajero ✈️'];
+    
+    const randomIndex = Math.floor(Math.random() * nombres.length);
+    
     profileCard.innerHTML = `
       <img src="/img/perfil_default.png" alt="Perfil">
-      <h3>Nuevo Usuario, 25</h3>
-      <p>Buscando nuevas amistades y conexiones 🌟</p>
-      <div class="buttons">
+      <h3>${nombres[randomIndex]}, ${edades[randomIndex]}</h3>
+      <p>${intereses[randomIndex]}</p>
+      <div class="discover-buttons">
         <button class="dislike">✖</button>
         <button class="like">❤</button>
       </div>
     `;
     
-    // Reconfigurar los eventos para los nuevos botones
     configurarBotonesDescubrir();
   }
 }
 
-// ✅ FUNCIÓN MEJORADA PARA CONFIGURAR CAMBIO DE AVATAR
+// FUNCIÓN PARA CONFIGURAR CAMBIO DE AVATAR
 function configurarCambioAvatar() {
   const avatarImgs = document.querySelectorAll('.user-avatar img, .create-post .avatar, .avatar-large');
   const uploadInput = document.createElement('input');
@@ -1130,6 +1268,16 @@ function injectGlobalStyles() {
     .post:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(155, 93, 229, 0.2);
+    }
+    
+    .post.temporal {
+      opacity: 0.7;
+      background: rgba(155, 93, 229, 0.1);
+    }
+    
+    .create-post button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   `;
 

@@ -1,4 +1,4 @@
-/* Paleta base */
+/* Paleta base y variables */
 :root {
   --morado: #9b5de5;
   --morado-claro: #d0aaff;
@@ -7,37 +7,55 @@
   --texto: #f5f5f5;
 }
 
-/* Estructura general */
+/* Reset y base */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Estructura general del grid */
 body {
   margin: 0;
   display: grid;
-  grid-template-columns: 250px 1fr 300px;
+  grid-template-columns: minmax(220px, 1fr) minmax(400px, 2fr) minmax(250px, 1fr);
+  gap: 0;
   height: 100vh;
   background: linear-gradient(135deg, var(--negro), var(--gris-oscuro));
   font-family: 'Poppins', sans-serif;
   color: var(--texto);
+  overflow-x: hidden;
+  min-width: 100vw;
 }
 
-/* ---- Sidebar ---- */
+/* ---- Sidebar izquierdo ---- */
 .sidebar {
   background-color: #000;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 20px 15px;
   box-shadow: 2px 0 10px rgba(0,0,0,0.4);
-  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-width: 220px;
+  max-width: 300px;
+  justify-self: start;
 }
 
-/* Logo Section Centrada */
 .logo-section {
   text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 15px;
+  margin-bottom: 25px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .logo-section img.site-logo {
@@ -47,38 +65,40 @@ body {
 }
 
 .logo-section h1 {
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
   margin: 0;
-  color: var(--texto);
-  font-weight: 600;
   background: linear-gradient(45deg, var(--morado), var(--morado-claro));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 600;
 }
 
-/* Avatar del usuario centrado */
+.user-info .username {
+  color: var(--morado);
+}
+
 .user-avatar {
   text-align: center;
-  margin: 20px 0;
+  margin: 15px 0;
 }
 
 .user-avatar img {
-  width: 80px;
-  height: 80px;
+  width: clamp(60px, 8vw, 80px);
+  height: clamp(60px, 8vw, 80px);
   border-radius: 50%;
   border: 3px solid var(--morado);
   object-fit: cover;
   cursor: pointer;
-  transition: transform 0.3s ease, border 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .user-avatar img:hover {
   transform: scale(1.05);
   border-color: var(--morado-claro);
+  box-shadow: 0 0 15px rgba(155, 93, 229, 0.6);
 }
 
-/* Menú de navegación */
 .menu {
   flex-grow: 1;
   display: flex;
@@ -90,11 +110,11 @@ body {
   display: block;
   color: var(--texto);
   text-decoration: none;
-  padding: 12px 0;
-  transition: 0.3s;
+  padding: clamp(8px, 1.5vh, 12px) 0;
+  padding-left: 12px;
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
+  transition: all 0.3s ease;
   border-left: 3px solid transparent;
-  font-size: 14px;
-  padding-left: 15px;
 }
 
 .menu a:hover, .menu a.active {
@@ -119,11 +139,20 @@ body {
 .main-content {
   padding: 20px;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  min-width: 400px;
+  flex: 1;
 }
 
-/* Feed tipo Twitter */
 .feed {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .create-post {
@@ -133,7 +162,14 @@ body {
   padding: 15px;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.create-post .avatar {
+  width: 45px;
+  height: 45px;
 }
 
 .create-post textarea {
@@ -144,79 +180,169 @@ body {
   resize: none;
   font-size: 14px;
   outline: none;
+  padding: 8px;
+  min-height: 50px;
 }
 
 .create-post button {
   background-color: var(--morado);
   border: none;
   color: white;
-  padding: 8px 14px;
+  padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;
   transition: 0.3s;
+  font-size: 14px;
+  align-self: flex-end;
 }
 
 .create-post button:hover {
   background-color: #7b39d1;
 }
 
-/* Publicaciones */
+/* ---- Posts ---- */
+.posts-container {
+  margin-top: 20px;
+  overflow-x: hidden;
+  width: 100%;
+}
+
 .post {
   display: flex;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--gris-oscuro);
   border-radius: 10px;
-  padding: 10px;
-  margin-top: 15px;
+  padding: 15px;
+  margin-bottom: 15px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.post:hover {
+  transform: translateY(-2px);
+  border-color: var(--morado);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .post .avatar {
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  margin-right: 10px;
+  margin-right: 15px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border: 2px solid var(--morado);
+  cursor: default;
 }
 
-/* ---- Descubrir (tipo Tinder) ---- */
-.discover {
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--gris-oscuro);
-  border-radius: 10px;
-  padding: 15px;
+.post-content {
+  flex: 1;
+  min-width: 0;
 }
 
-.discover h2 {
+.post-content h3 {
+  margin: 0 0 8px 0;
   color: var(--morado-claro);
+  font-size: 14px;
+}
+
+.post-content p {
+  margin: 0 0 8px 0;
+  color: var(--texto);
+  line-height: 1.5;
+  word-wrap: break-word;
+  font-size: 14px;
+}
+
+.post-content small {
+  color: #777;
+  font-size: 11px;
+}
+
+/* ---- Panel de descubrimiento derecho ---- */
+.discover-panel {
+  background-color: #111;
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  padding: 15px 12px;
+  width: 100%;
+  min-width: 250px;
+  max-width: 320px;
+  overflow: hidden;
+  justify-self: end;
+}
+
+.discover-header {
   margin-bottom: 15px;
+}
+
+.discover-header h2 {
+  color: var(--morado-claro);
+  margin: 0;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.discover-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.discover-content::-webkit-scrollbar {
+  display: none;
 }
 
 .profile-card {
   text-align: center;
   background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid var(--morado);
 }
 
 .profile-card img {
-  width: 120px;
-  height: 120px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   border: 2px solid var(--morado);
+  object-fit: cover;
+  margin-bottom: 12px;
 }
 
-.buttons {
-  margin-top: 10px;
+.profile-card h3 {
+  color: var(--texto);
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+}
+
+.profile-card p {
+  color: #ccc;
+  margin: 0 0 15px 0;
+  font-size: 0.8rem;
+}
+
+.discover-buttons {
   display: flex;
   justify-content: space-around;
+  gap: 8px;
 }
 
-.buttons button {
-  font-size: 20px;
-  padding: 10px;
+.discover-buttons button {
+  font-size: 18px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .like {
@@ -231,173 +357,72 @@ body {
 
 .like:hover {
   background-color: #7b39d1;
+  transform: scale(1.1);
 }
 
 .dislike:hover {
   background-color: #f55;
   color: white;
+  transform: scale(1.1);
 }
 
-/* ---- Panel de chat tipo Discord ---- */
-.chat-panel {
-  background-color: #111;
-  border-left: 1px solid #333;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 15px;
+.discover-suggestions {
+  margin-top: 15px;
 }
 
-.chat-panel h2 {
+.discover-suggestions h3 {
   color: var(--morado-claro);
-  margin: 0 0 10px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
 }
 
-.chat-box {
-  flex-grow: 1;
-  overflow-y: auto;
-  margin-bottom: 10px;
-}
-
-.message {
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 8px;
-  border-radius: 8px;
-  margin-bottom: 6px;
-}
-
-.send-message {
+.suggestion {
   display: flex;
-  gap: 5px;
-}
-
-.send-message input {
-  flex: 1;
-  border: none;
-  border-radius: 8px;
+  align-items: center;
   padding: 8px;
-  background-color: #222;
-  color: var(--texto);
-}
-
-.send-message button {
-  background-color: var(--morado);
-  border: none;
+  background-color: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  color: white;
-  padding: 8px 12px;
+  margin-bottom: 8px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.send-message button:hover {
-  background-color: #7b39d1;
-}
-
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--morado);
-  border-radius: 4px;
-}
-
-/* ---- Imagen de perfil predeterminada ---- */
-.avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: 2px solid var(--morado);
-  object-fit: cover;
-}
-
-/* Imagen de perfil más grande en tarjetas tipo Tinder */
-.profile-card img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--morado);
-}
-
-/* Asegura que el área de crear publicación se vea centrada */
-.create-post {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-}
-
-/* Efecto hover sobre los posts */
-.post:hover {
+.suggestion:hover {
   background-color: rgba(255, 255, 255, 0.08);
-  transition: background 0.3s ease;
 }
 
-/* Indicador visual para avatars editables */
-.user-avatar img[style*="cursor: pointer"],
-.create-post .avatar[style*="cursor: pointer"] {
-  position: relative;
-  transition: all 0.3s ease;
+.suggestion img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
 }
 
-.user-avatar img[style*="cursor: pointer"]:hover::after,
-.create-post .avatar[style*="cursor: pointer"]:hover::after {
-  content: "🖊️ Cambiar foto";
-  position: absolute;
-  bottom: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  white-space: nowrap;
-  z-index: 1000;
+.suggestion-info h4 {
+  margin: 0 0 2px 0;
+  color: var(--texto);
+  font-size: 0.8rem;
 }
 
-/* Efecto hover más evidente para avatars editables */
-.user-avatar img:hover,
-.create-post .avatar:hover {
-  border-color: var(--morado-claro);
-  box-shadow: 0 0 15px rgba(155, 93, 229, 0.6);
-  transform: scale(1.05);
+.suggestion-info p {
+  margin: 0;
+  color: #777;
+  font-size: 0.7rem;
 }
 
-/* Los avatars no editables no tienen efectos especiales */
-.post .avatar {
-  cursor: default !important;
-  border-color: var(--morado);
-}
-
-.post .avatar:hover {
-  transform: none !important;
-  box-shadow: none !important;
-  border-color: var(--morado) !important;
-}
-
-/* ---- Estilos para las secciones ---- */
+/* ---- Secciones de contenido ---- */
 .content-section {
   display: none;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 .content-section.active {
   display: block;
 }
 
-/* ---- Información del usuario en sidebar ---- */
-.user-info {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.username {
-  color: var(--morado-claro);
-  font-weight: 600;
-  font-size: 14px;
-}
-
-/* ---- Estilos para Mensajes ---- */
+/* ---- Mensajes ---- */
 .messages-header {
   margin-bottom: 20px;
 }
@@ -446,7 +471,7 @@ body {
   font-size: 12px;
 }
 
-/* ---- Estilos para Perfil ---- */
+/* ---- Perfil ---- */
 .profile-header {
   display: flex;
   gap: 30px;
@@ -462,6 +487,7 @@ body {
   border-radius: 50%;
   border: 4px solid var(--morado);
   object-fit: cover;
+  cursor: pointer;
 }
 
 .edit-avatar {
@@ -473,6 +499,7 @@ body {
   border-radius: 8px;
   cursor: pointer;
   font-size: 12px;
+  transition: 0.3s;
 }
 
 .edit-avatar:hover {
@@ -520,9 +547,15 @@ body {
   margin-top: 15px;
 }
 
-/* ---- Estilos para Configuración ---- */
+/* ---- Configuración ---- */
 .settings-header {
   margin-bottom: 30px;
+}
+
+.settings-subtitle {
+  color: #777;
+  margin-top: 5px;
+  font-size: 14px;
 }
 
 .settings-options {
@@ -575,8 +608,32 @@ body {
   resize: vertical;
 }
 
-.setting-item input[type="checkbox"] {
+.setting-hint {
+  color: #777;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+}
+
+.setting-item.checkbox {
+  display: flex;
+  align-items: flex-start;
+}
+
+.setting-item.checkbox label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkmark {
   margin-right: 10px;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
 }
 
 .save-settings {
@@ -588,125 +645,33 @@ body {
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
+  transition: 0.3s;
 }
 
 .save-settings:hover {
   background-color: #7b39d1;
 }
 
-/* ---- Mejoras en el chat ---- */
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.toggle-chat {
-  background: none;
+.cancel-settings {
+  background-color: #6c757d;
+  color: white;
   border: none;
-  color: var(--morado-claro);
-  font-size: 18px;
+  padding: 12px 25px;
+  border-radius: 8px;
   cursor: pointer;
-}
-
-.avatar-small {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-right: 10px;
-  object-fit: cover;
-}
-
-.message {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-
-.message-content {
-  flex: 1;
-}
-
-.message-content small {
-  color: #777;
-  font-size: 10px;
-  margin-left: 8px;
-}
-
-/* ---- Contenedor de posts ---- */
-.posts-container {
-  margin-top: 20px;
-}
-
-.post {
-  display: flex;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--gris-oscuro);
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  transition: transform 0.2s ease;
-}
-
-.post:hover {
-  transform: translateY(-2px);
-  border-color: var(--morado);
-}
-
-.post .avatar {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  margin-right: 15px;
-  object-fit: cover;
-}
-
-.post-content h3 {
-  margin: 0 0 8px 0;
-  color: var(--morado-claro);
   font-size: 14px;
+  transition: 0.3s;
 }
 
-.post-content p {
-  margin: 0 0 8px 0;
-  color: var(--texto);
-  line-height: 1.4;
+.cancel-settings:hover {
+  background-color: #5a6268;
 }
 
-.post-content small {
-  color: #777;
-  font-size: 11px;
+.btn-icon {
+  margin-right: 8px;
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 1200px) {
-  body {
-    grid-template-columns: 200px 1fr 250px;
-  }
-}
-
-@media (max-width: 768px) {
-  body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
-  }
-  
-  .sidebar {
-    order: 1;
-  }
-  
-  .main-content {
-    order: 2;
-  }
-  
-  .chat-panel {
-    order: 3;
-    height: 200px;
-  }
-}
-
-/* ---- Estilos para mensajes flotantes ---- */
+/* ---- Mensajes flotantes ---- */
 .mensaje-flotante {
   position: fixed;
   top: 20px;
@@ -736,59 +701,66 @@ body {
   color: #000;
 }
 
-/* Agregar a principal.css */
-.settings-subtitle {
-  color: #777;
-  margin-top: 5px;
-  font-size: 14px;
+/* ---- Scrollbar personalizada ---- */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.setting-hint {
-  color: #777;
-  font-size: 12px;
-  margin-top: 5px;
-  display: block;
+::-webkit-scrollbar-thumb {
+  background: var(--morado);
+  border-radius: 4px;
 }
 
-.setting-item.checkbox {
-  display: flex;
-  align-items: flex-start;
+/* ---- Responsive ---- */
+@media (max-width: 1400px) {
+  body {
+    grid-template-columns: minmax(200px, 1fr) minmax(350px, 2fr) minmax(230px, 1fr);
+  }
 }
 
-.setting-item.checkbox label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
+@media (max-width: 1200px) {
+  body {
+    grid-template-columns: minmax(180px, 1fr) minmax(300px, 2fr) minmax(200px, 1fr);
+  }
 }
 
-.checkmark {
-  margin-right: 10px;
+@media (max-width: 1024px) {
+  body {
+    grid-template-columns: minmax(160px, 1fr) minmax(280px, 2fr) minmax(180px, 1fr);
+  }
 }
 
-.settings-actions {
-  display: flex;
-  gap: 15px;
-  margin-top: 30px;
+@media (max-width: 900px) {
+  .discover-panel {
+    display: none;
+  }
+  
+  body {
+    grid-template-columns: minmax(160px, 1fr) minmax(300px, 3fr);
+  }
 }
 
-.cancel-settings {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  
+  .sidebar {
+    order: 1;
+    width: 100%;
+    min-width: unset;
+    max-width: unset;
+  }
+  
+  .main-content {
+    order: 2;
+    padding: 15px;
+    min-width: unset;
+  }
 }
 
-.cancel-settings:hover {
-  background-color: #5a6268;
-}
-
-.btn-icon {
-  margin-right: 8px;
-}
-
+/* ---- Animaciones ---- */
 @keyframes slideInRight {
   from {
     transform: translateX(100%);
@@ -809,4 +781,9 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
+}
+
+/* ---- Elementos ocultos ---- */
+.discover {
+  display: none;
 }
