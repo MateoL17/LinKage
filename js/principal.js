@@ -515,13 +515,15 @@ async function cargarPostsUsuario() {
 
         postsOrdenados.forEach(post => {
           const postElement = document.createElement('div');
-          postElement.className = 'post';
+          postElement.className = 'user-post';
           postElement.innerHTML = `
-            <img src="${post.foto || 'img/perfil_default.png'}" alt="${post.usuario}" class="avatar">
             <div class="post-content">
-              <h3>@${post.usuario}</h3>
               <p>${post.contenido}</p>
               <small>${new Date(post.fecha).toLocaleString()}</small>
+              <div class="post-stats">
+                <span class="likes-stat">👍 ${post.likes || 0}</span>
+                <span class="dislikes-stat">👎 ${post.dislikes || 0}</span>
+              </div>
             </div>
           `;
           userPostsContainer.appendChild(postElement);
@@ -546,9 +548,16 @@ function agregarPostAlFeed(post, agregarAlInicio = true) {
 
   const postElement = document.createElement('div');
   postElement.className = 'post';
+  postElement.dataset.postId = post._id;
+  
   if (post.temporal) {
     postElement.classList.add('temporal');
   }
+  
+  // Determinar si el usuario ya dio like o dislike
+  const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
+  const usuarioDioLike = post.usuariosQueDieronLike?.includes(usuarioActivo.usuario);
+  const usuarioDioDislike = post.usuariosQueDieronDislike?.includes(usuarioActivo.usuario);
   
   postElement.innerHTML = `
     <img src="${corregirUrlAvatar(post.usuarioFoto, post.usuario)}" alt="${post.usuario}" class="avatar">
@@ -556,8 +565,25 @@ function agregarPostAlFeed(post, agregarAlInicio = true) {
       <h3>@${post.usuario}</h3>
       <p>${post.contenido}</p>
       <small>${new Date(post.fecha).toLocaleString()}</small>
+      <div class="post-actions">
+        <button class="like-btn ${usuarioDioLike ? 'active' : ''}" data-post-id="${post._id}">
+          <span class="like-icon">👍</span>
+          <span class="like-count">${post.likes || 0}</span>
+        </button>
+        <button class="dislike-btn ${usuarioDioDislike ? 'active' : ''}" data-post-id="${post._id}">
+          <span class="dislike-icon">👎</span>
+          <span class="dislike-count">${post.dislikes || 0}</span>
+        </button>
+      </div>
     </div>
   `;
+
+  // Agregar event listeners a los botones
+  const likeBtn = postElement.querySelector('.like-btn');
+  const dislikeBtn = postElement.querySelector('.dislike-btn');
+  
+  likeBtn.addEventListener('click', () => manejarLike(post._id));
+  dislikeBtn.addEventListener('click', () => manejarDislike(post._id));
 
   // SIEMPRE agregar nuevos posts al INICIO
   if (agregarAlInicio && postsContainer.firstChild) {
@@ -567,6 +593,88 @@ function agregarPostAlFeed(post, agregarAlInicio = true) {
   }
   
   console.log('✅ Post agregado correctamente');
+}
+
+// FUNCIÓN PARA MANEJAR LIKE
+async function manejarLike(postId) {
+  try {
+    const token = localStorage.getItem('token');
+    const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
+    
+    const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        usuario: usuarioActivo.usuario
+      })
+    });
+
+    if (response.ok) {
+      const resultado = await response.json();
+      console.log('✅ Like registrado:', resultado);
+      
+      // Actualizar la interfaz
+      actualizarInterfazLikes(postId, resultado.likes, resultado.dislikes, resultado.usuarioDioLike, resultado.usuarioDioDislike);
+    } else {
+      console.error('❌ Error dando like');
+    }
+  } catch (error) {
+    console.error('❌ Error dando like:', error);
+  }
+}
+
+// FUNCIÓN PARA MANEJAR DISLIKE
+async function manejarDislike(postId) {
+  try {
+    const token = localStorage.getItem('token');
+    const usuarioActivo = JSON.parse(localStorage.getItem('usuarioActivo'));
+    
+    const response = await fetch(`${API_URL}/posts/${postId}/dislike`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        usuario: usuarioActivo.usuario
+      })
+    });
+
+    if (response.ok) {
+      const resultado = await response.json();
+      console.log('✅ Dislike registrado:', resultado);
+      
+      // Actualizar la interfaz
+      actualizarInterfazLikes(postId, resultado.likes, resultado.dislikes, resultado.usuarioDioLike, resultado.usuarioDioDislike);
+    } else {
+      console.error('❌ Error dando dislike');
+    }
+  } catch (error) {
+    console.error('❌ Error dando dislike:', error);
+  }
+}
+
+// FUNCIÓN PARA ACTUALIZAR INTERFAZ DE LIKES
+function actualizarInterfazLikes(postId, likes, dislikes, usuarioDioLike, usuarioDioDislike) {
+  const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+  
+  if (postElement) {
+    const likeBtn = postElement.querySelector('.like-btn');
+    const dislikeBtn = postElement.querySelector('.dislike-btn');
+    const likeCount = postElement.querySelector('.like-count');
+    const dislikeCount = postElement.querySelector('.dislike-count');
+    
+    // Actualizar contadores
+    likeCount.textContent = likes || 0;
+    dislikeCount.textContent = dislikes || 0;
+    
+    // Actualizar estados de botones
+    likeBtn.classList.toggle('active', usuarioDioLike);
+    dislikeBtn.classList.toggle('active', usuarioDioDislike);
+  }
 }
 
 // FUNCIÓN PARA CARGAR CONVERSACIONES
@@ -1213,7 +1321,7 @@ function actualizarAvataresEnInterfaz(nuevaFotoUrl) {
     console.log('✅ Avatar sidebar actualizado');
   }
 
-  // Actualizar en el área de crear post
+  // Actualizar en el área de crear post (ahora dentro del círculo)
   const avatarCreatePost = document.querySelector('.create-post .avatar');
   if (avatarCreatePost) {
     avatarCreatePost.src = urlConTimestamp;

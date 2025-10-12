@@ -42,15 +42,36 @@
     <section class="content-section active" id="inicio">
       <div class="feed">
         <div class="create-post">
+          <div class="avatar-circle">
           <img src="/img/perfil_default.png" alt="Perfil" class="avatar">
+          </div>
           <textarea placeholder="¿Qué estás pensando, hoy?" maxlength="200"></textarea>
           <button>Publicar</button>
         </div>
 
-        <!-- Los posts se cargarán dinámicamente aquí -->
-        <div class="posts-container">
-          <!-- Posts cargados dinámicamente -->
+      <!-- Los posts se cargarán dinámicamente aquí -->
+      <div class="posts-container">
+        <!-- Posts cargados dinámicamente con esta estructura: -->
+        <div class="post">
+          <img src="/img/perfil_default.png" alt="Usuario" class="avatar">
+        <div class="post-content">
+        <h3>@usuario</h3>
+        <p>Contenido del post</p>
+        <small>Fecha de publicación</small>
+        <!-- NUEVO: Botones de like/dislike -->
+        <div class="post-actions">
+        <button class="like-btn" data-post-id="id_del_post">
+          <span class="like-icon">👍</span>
+          <span class="like-count">0</span>
+        </button>
+        <button class="dislike-btn" data-post-id="id_del_post">
+          <span class="dislike-icon">👎</span>
+          <span class="dislike-count">0</span>
+        </button>
         </div>
+        </div>
+        </div>
+      </div>
       </div>
     </section>
 
@@ -107,11 +128,21 @@
         </div>
       </div>
       <div class="profile-posts">
-        <h3>Mis Publicaciones</h3>
-        <div class="user-posts">
-          <!-- Posts del usuario -->
+      <h3>Mis Publicaciones</h3>
+      <div class="user-posts">
+      <!-- Posts del usuario con estadísticas -->
+      <div class="user-post">
+      <div class="post-content">
+        <p>Contenido del post</p>
+        <small>Fecha de publicación</small>
+        <div class="post-stats">
+          <span class="likes-stat">👍 5</span>
+          <span class="dislikes-stat">👎 2</span>
+        </div>
+        </div>
         </div>
       </div>
+    </div>
     </section>
 
     <!-- Sección Configuración -->

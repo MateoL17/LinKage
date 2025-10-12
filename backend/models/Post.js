@@ -1,13 +1,37 @@
 import mongoose from 'mongoose';
 
 const postSchema = new mongoose.Schema({
-  usuario: { type: String, required: true },
-  contenido: { type: String, required: true },
-  fecha: { type: Date, default: Date.now },
-  likes: { type: Number, default: 0 },
-  usuarioFoto: { type: String, default: 'img/perfil_default.png' }
+  usuario: {
+    type: String,
+    required: true
+  },
+  contenido: {
+    type: String,
+    required: true
+  },
+  fecha: {
+    type: Date,
+    default: Date.now
+  },
+  usuarioFoto: {
+    type: String,
+    default: 'img/perfil_default.png'
+  },
+  // NUEVOS CAMPOS PARA LIKES Y DISLIKES
+  likes: {
+    type: Number,
+    default: 0
+  },
+  dislikes: {
+    type: Number,
+    default: 0
+  },
+  usuariosQueDieronLike: [{
+    type: String // nombres de usuario que dieron like
+  }],
+  usuariosQueDieronDislike: [{
+    type: String // nombres de usuario que dieron dislike
+  }]
 });
 
-const Post = mongoose.model('Post', postSchema);
-
-export default Post;
+export default mongoose.model('Post', postSchema);

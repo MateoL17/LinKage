@@ -334,6 +334,100 @@ app.post('/api/posts', authenticateToken, async (req, res) => {
   }
 });
 
+// ✅ RUTAS DE LIKES/DISLIKES - AGREGAR EN SERVER.JS
+app.post('/api/posts/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post no encontrado' });
+    }
+
+    const usuario = req.body.usuario;
+
+    // Si ya dio like, quitar like
+    if (post.usuariosQueDieronLike.includes(usuario)) {
+      post.usuariosQueDieronLike = post.usuariosQueDieronLike.filter(u => u !== usuario);
+      post.likes = Math.max(0, post.likes - 1);
+    } 
+    // Si dio dislike, cambiar a like
+    else if (post.usuariosQueDieronDislike.includes(usuario)) {
+      post.usuariosQueDieronDislike = post.usuariosQueDieronDislike.filter(u => u !== usuario);
+      post.dislikes = Math.max(0, post.dislikes - 1);
+      post.usuariosQueDieronLike.push(usuario);
+      post.likes += 1;
+    }
+    // Si no ha interactuado, agregar like
+    else {
+      post.usuariosQueDieronLike.push(usuario);
+      post.likes += 1;
+    }
+
+    await post.save();
+
+    res.json({
+      likes: post.likes,
+      dislikes: post.dislikes,
+      usuarioDioLike: post.usuariosQueDieronLike.includes(usuario),
+      usuarioDioDislike: post.usuariosQueDieronDislike.includes(usuario)
+    });
+  } catch (error) {
+    console.error('❌ Error en like:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+app.post('/api/posts/:id/dislike', authenticateToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post no encontrado' });
+    }
+
+    const usuario = req.body.usuario;
+
+    // Si ya dio dislike, quitar dislike
+    if (post.usuariosQueDieronDislike.includes(usuario)) {
+      post.usuariosQueDieronDislike = post.usuariosQueDieronDislike.filter(u => u !== usuario);
+      post.dislikes = Math.max(0, post.dislikes - 1);
+    } 
+    // Si dio like, cambiar a dislike
+    else if (post.usuariosQueDieronLike.includes(usuario)) {
+      post.usuariosQueDieronLike = post.usuariosQueDieronLike.filter(u => u !== usuario);
+      post.likes = Math.max(0, post.likes - 1);
+      post.usuariosQueDieronDislike.push(usuario);
+      post.dislikes += 1;
+    }
+    // Si no ha interactuado, agregar dislike
+    else {
+      post.usuariosQueDieronDislike.push(usuario);
+      post.dislikes += 1;
+    }
+
+    await post.save();
+
+    res.json({
+      likes: post.likes,
+      dislikes: post.dislikes,
+      usuarioDioLike: post.usuariosQueDieronLike.includes(usuario),
+      usuarioDioDislike: post.usuariosQueDieronDislike.includes(usuario)
+    });
+  } catch (error) {
+    console.error('❌ Error en dislike:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Ruta para obtener posts de un usuario específico
+app.get('/api/posts/usuario/:usuario', authenticateToken, async (req, res) => {
+  try {
+    const posts = await Post.find({ usuario: req.params.usuario }).sort({ fecha: -1 });
+    res.json(posts);
+  } catch (error) {
+    console.error('Error obteniendo posts del usuario:', error);
+    res.status(500).json({ error: 'Error obteniendo posts del usuario' });
+  }
+});
+
 // Routes - Mensajes
 app.get('/api/messages/:receptor', authenticateToken, async (req, res) => {
   try {

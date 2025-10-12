@@ -4,12 +4,13 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { gfs, initializeGridFS } from '../config/gridfs.js';
 import User from '../models/User.js';
+import Post from '../models/Post.js';
 
 const router = express.Router();
 const { ObjectId } = mongoose.Types;
 
-// Middleware de autenticación
-const authenticateToken = (req, res, next) => {
+// Middleware de autenticación - RENOMBRAR A "auth" para consistencia
+const auth = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -62,7 +63,7 @@ const ensureGridFS = async (req, res, next) => {
 };
 
 // ✅ SUBIR AVATAR - VERSIÓN DEFINITIVA
-router.post('/avatar', authenticateToken, ensureGridFS, upload.single('foto'), async (req, res) => {
+router.post('/avatar', auth, ensureGridFS, upload.single('foto'), async (req, res) => {
   let uploadStream = null;
   
   try {
@@ -246,7 +247,7 @@ router.get('/avatar/:usuario', async (req, res) => {
 });
 
 // ✅ ELIMINAR AVATAR
-router.delete('/avatar', authenticateToken, ensureGridFS, async (req, res) => {
+router.delete('/avatar', auth, ensureGridFS, async (req, res) => {
   try {
     const usuario = await User.findOne({ usuario: req.user.usuario });
     
