@@ -138,7 +138,7 @@ app.use((req, res, next) => {
 });
 
 // =============================================
-// MIDDLEWARE DE AUTENTICACIÃ“N
+// MIDDLEWARE DE AUTENTICACIÓN
 // =============================================
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -158,7 +158,7 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// ConexiÃ³n a MongoDB
+// Conexión a MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/LinKage';
 
 mongoose.connect(MONGODB_URI)
@@ -270,7 +270,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ error: 'Contraseña incorrecta' });
     }
 
-    console.log('BCRYPT: ContraseÃ±as coinciden - Login exitoso');
+    console.log('BCRYPT: Contraseñas coinciden - Login exitoso');
 
     const token = jwt.sign(
       { 

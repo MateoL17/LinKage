@@ -9,8 +9,8 @@ class SessionManager {
     getApiUrl() {
         const { hostname, protocol } = window.location;
         
-        console.log('ðŸ” DetecciÃ³n de URL - Hostname:', hostname);
-        console.log('ðŸ” DetecciÃ³n de URL - Protocol:', protocol);
+        console.log('DetecciÃ³n de URL - Hostname:', hostname);
+        console.log('DetecciÃ³n de URL - Protocol:', protocol);
         
         // CASO 1: Ngrok - NO USAR PUERTO
         if (hostname.includes('ngrok.io') || 
@@ -18,27 +18,27 @@ class SessionManager {
             hostname.includes('ngrok-free.dev')) {
             
             const apiUrl = `${protocol}//${hostname}/api`;
-            console.log('ðŸŒ URL Ngrok detectada (sin puerto):', apiUrl);
+            console.log('URL Ngrok detectada (sin puerto):', apiUrl);
             return apiUrl;
         }
         
         // CASO 2: Localhost - USAR PUERTO 3001
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
             const apiUrl = `http://localhost:3001/api`;
-            console.log('ðŸ“ URL Localhost detectada (con puerto):', apiUrl);
+            console.log('URL Localhost detectada (con puerto):', apiUrl);
             return apiUrl;
         }
         
         // CASO 3: Red local - USAR PUERTO 3001
         if (hostname === '192.168.100.6') {
             const apiUrl = `http://192.168.100.6:3001/api`;
-            console.log('ðŸ“± URL Red local detectada (con puerto):', apiUrl);
+            console.log('URL Red local detectada (con puerto):', apiUrl);
             return apiUrl;
         }
         
         // CASO POR DEFECTO: Asumir entorno de producciÃ³n sin puerto
         const apiUrl = `${protocol}//${hostname}/api`;
-        console.log('âš¡ URL por defecto (sin puerto):', apiUrl);
+        console.log('URL por defecto (sin puerto):', apiUrl);
         return apiUrl;
     }
 
@@ -56,12 +56,12 @@ class SessionManager {
     // âœ… MÃ‰TODO DE PRUEBA CORREGIDO
     async testConnection() {
         try {
-            console.log('ðŸ” Iniciando prueba de conexiÃ³n...');
-            console.log('ðŸ”— URL de API:', this.API_URL);
+            console.log('Iniciando prueba de conexión...');
+            console.log('URL de API:', this.API_URL);
             
             // Usar directamente this.API_URL + '/health'
             const healthUrl = this.API_URL.replace('/api', '') + '/health';
-            console.log('ðŸ©º Probando endpoint:', healthUrl);
+            console.log('Probando endpoint:', healthUrl);
             
             const response = await fetch(healthUrl, {
                 method: 'GET',
@@ -75,24 +75,24 @@ class SessionManager {
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('âœ… âœ… âœ… CONEXIÃ“N EXITOSA!');
-                console.log('ðŸ“Š Datos del servidor:', data);
+                console.log('CONEXIÓN EXITOSA!');
+                console.log('Datos del servidor:', data);
                 return true;
             } else {
-                console.warn('âš ï¸ Respuesta no exitosa. Status:', response.status);
+                console.warn('Respuesta no exitosa. Status:', response.status);
                 return false;
             }
             
         } catch (error) {
-            console.error('âŒ Error en prueba de conexiÃ³n:', error.name, error.message);
+            console.error('Error en prueba de conexión:', error.name, error.message);
             
-            // Mostrar informaciÃ³n especÃ­fica del error
+            // Mostrar información especí­fica del error
             if (error.name === 'AbortError') {
-                console.log('â° Timeout: El servidor no respondiÃ³ en 10 segundos');
+                console.log('Timeout: El servidor no respondió en 10 segundos');
             } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                console.log('ðŸ”Œ Error de red: No se pudo conectar al servidor');
-                console.log('ðŸ’¡ Verifica:');
-                console.log('   1. Que ngrok estÃ© corriendo');
+                console.log('Error de red: No se pudo conectar al servidor');
+                console.log('Verifica:');
+                console.log('   1. Que ngrok está corriendo');
                 console.log('   2. Que la URL sea correcta');
                 console.log('   3. Que no haya problemas de firewall/red');
             }
@@ -104,36 +104,36 @@ class SessionManager {
     setupApplication() {
         this.setupForms();
         
-        console.log('âœ… AplicaciÃ³n configurada con URL:', this.API_URL);
+        console.log('Aplicación configurada con URL:', this.API_URL);
     }
 
     isLoggedIn() {
     // Si hay parÃ¡metro de logout, no redirigir
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('logout') === 'true') {
-        console.log('ðŸšª SesiÃ³n cerrada, no redirigir');
+        console.log('Sesión cerrada, no redirigir');
         return false;
     }
     
     const token = localStorage.getItem('token');
     if (token) {
-        // Verificar que el token no estÃ© expirado
+        // Verificar que el token no está expirado
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const now = Date.now() / 1000;
             
             if (payload.exp && payload.exp < now) {
-                console.log('âŒ Token expirado');
+                console.log('Token expirado');
                 localStorage.removeItem('token');
                 localStorage.removeItem('usuarioActivo');
                 return false;
             }
             
-            console.log('âœ… Usuario autenticado, redirigiendo...');
+            console.log('Usuario autenticado, redirigiendo...');
             window.location.href = 'principal.html';
             return true;
         } catch (error) {
-            console.error('âŒ Error verificando token:', error);
+            console.error('Error verificando token:', error);
             localStorage.removeItem('token');
             localStorage.removeItem('usuarioActivo');
             return false;
@@ -154,7 +154,7 @@ class SessionManager {
         const password = document.getElementById('loginPassword');
 
         if (!form || !usuario || !password) {
-            console.error('âŒ Elementos del formulario de login no encontrados');
+            console.error('Elementos del formulario de login no encontrados');
             return;
         }
 
@@ -171,7 +171,7 @@ class SessionManager {
             await this.iniciarSesion(user, pass);
         });
 
-        console.log('âœ… Formulario de login configurado');
+        console.log('Formulario de login configurado');
     }
 
     setupRegisterForm() {
@@ -180,7 +180,7 @@ class SessionManager {
             .map(id => document.getElementById(id));
 
         if (!form || elements.some(el => !el)) {
-            console.error('âŒ Elementos del formulario de registro no encontrados');
+            console.error('Elementos del formulario de registro no encontrados');
             return;
         }
 
@@ -204,7 +204,7 @@ class SessionManager {
             await this.registrarUsuario(userData.usuario, userData.email, userData.password);
         });
 
-        console.log('âœ… Formulario de registro configurado');
+        console.log('Formulario de registro configurado');
     }
 
     validarRegistro({ usuario, email, password, confirmPassword }) {
@@ -213,15 +213,15 @@ class SessionManager {
         }
 
         if (password !== confirmPassword) {
-            return { isValid: false, message: 'Las contraseÃ±as no coinciden' };
+            return { isValid: false, message: 'Las contraseñas no coinciden' };
         }
 
         if (password.length < 6) {
-            return { isValid: false, message: 'La contraseÃ±a debe tener al menos 6 caracteres' };
+            return { isValid: false, message: 'La contraseña debe tener al menos 6 caracteres' };
         }
 
         if (!this.validarEmail(email)) {
-            return { isValid: false, message: 'Por favor, ingresa un email vÃ¡lido' };
+            return { isValid: false, message: 'Por favor, ingresa un email valido' };
         }
 
         return { isValid: true };
@@ -238,7 +238,7 @@ class SessionManager {
         };
 
         if (Object.values(elements).some(el => !el)) {
-            console.error('âŒ Elementos para cambio de formulario no encontrados');
+            console.error('Elementos para cambio de formulario no encontrados');
             return;
         }
 
@@ -254,7 +254,7 @@ class SessionManager {
             this.switchToLogin();
         });
 
-        console.log('âœ… Cambio de formularios configurado');
+        console.log('Cambio de formularios configurado');
     }
 
     // ================= ANIMACIONES =================
@@ -328,8 +328,8 @@ class SessionManager {
             this.mostrarCargando(true, 'loginBtn');
             
             const loginUrl = `${this.API_URL}/login`;
-            console.log('ðŸ” ENVIANDO LOGIN A:', loginUrl);
-            console.log('ðŸ“¤ Datos:', { usuario: usuario.substring(0, 3) + '***' });
+            console.log('ENVIANDO LOGIN A:', loginUrl);
+            console.log('Datos:', { usuario: usuario.substring(0, 3) + '***' });
             
             const response = await fetch(loginUrl, {
                 method: 'POST',
@@ -341,7 +341,7 @@ class SessionManager {
                 signal: AbortSignal.timeout(15000) // 15 segundos timeout
             });
 
-            console.log('ðŸ“¥ Respuesta recibida - Status:', response.status);
+            console.log('Respuesta recibida - Status:', response.status);
             
             const text = await response.text();
             let data;
@@ -349,30 +349,30 @@ class SessionManager {
             try {
                 data = text ? JSON.parse(text) : {};
             } catch (e) {
-                console.error('âŒ Error parseando JSON:', e);
-                data = { error: 'Respuesta invÃ¡lida del servidor' };
+                console.error('Error parseando JSON:', e);
+                data = { error: 'Respuesta inválida del servidor' };
             }
 
             if (response.ok) {
-                console.log('âœ… Login exitoso');
+                console.log('Login exitoso');
                 this.handleLoginSuccess(data);
             } else {
                 const errorMsg = data.error || `Error ${response.status}`;
-                console.error('âŒ Error en login:', errorMsg);
+                console.error('Error en login:', errorMsg);
                 this.mostrarError(errorMsg);
                 this.mostrarCargando(false, 'loginBtn');
                 botonRestaurado = true;
             }
             
         } catch (error) {
-            console.error('âŒ Error de conexiÃ³n completo:', error);
+            console.error('Error de conexión completo:', error);
             
-            let mensajeError = 'Error de conexiÃ³n';
+            let mensajeError = 'Error de conexión';
             
             if (error.name === 'AbortError') {
-                mensajeError = 'El servidor no respondiÃ³ a tiempo. Intenta nuevamente.';
+                mensajeError = 'El servidor no respondió a tiempo. Intenta nuevamente.';
             } else if (error.name === 'TypeError') {
-                mensajeError = 'No se pudo conectar al servidor. Verifica tu conexiÃ³n.';
+                mensajeError = 'No se pudo conectar al servidor. Verifica tu conexión.';
             }
             
             this.mostrarError(mensajeError);
@@ -394,7 +394,7 @@ class SessionManager {
             localStorage.setItem('token', data.token);
             localStorage.setItem('usuarioActivo', JSON.stringify(data.usuario));
             
-            this.mostrarExito('Â¡Inicio de sesiÃ³n exitoso!');
+            this.mostrarExito('¡Inicio de sesión exitoso!');
             
             setTimeout(() => {
                 window.location.href = 'principal.html';
@@ -411,7 +411,7 @@ class SessionManager {
         try {
             this.mostrarCargando(true, 'registroBtn');
             
-            console.log('ðŸ“¤ Enviando registro a:', `${this.API_URL}/register`);
+            console.log('Enviando registro a:', `${this.API_URL}/register`);
             
             const response = await fetch(`${this.API_URL}/register`, {
                 method: 'POST',
@@ -422,31 +422,31 @@ class SessionManager {
                 body: JSON.stringify({ usuario, email, password })
             });
 
-            console.log('ðŸ“¥ Respuesta del servidor:', {
+            console.log('Respuesta del servidor:', {
                 status: response.status,
                 statusText: response.statusText,
                 ok: response.ok
             });
 
             const responseText = await response.text();
-            console.log('ðŸ“„ Contenido de la respuesta:', responseText);
+            console.log('Contenido de la respuesta:', responseText);
 
             let data;
             try {
                 data = responseText ? JSON.parse(responseText) : {};
             } catch (parseError) {
-                console.error('âŒ Error parseando JSON:', parseError);
+                console.error('Error parseando JSON:', parseError);
                 if (response.status === 500 && responseText.includes('usuario creado')) {
                     this.handleRegisterSuccess(usuario);
                     return;
                 }
-                data = { error: 'Respuesta invÃ¡lida del servidor' };
+                data = { error: 'Respuesta inválida del servidor' };
             }
 
             if (response.ok) {
                 this.handleRegisterSuccess(usuario);
             } else if (response.status === 500) {
-                console.warn('âš ï¸ Error 500 del servidor, verificando si el usuario fue creado...');
+                console.warn('Error 500 del servidor, verificando si el usuario fue creado...');
                 
                 const verification = await this.verificarUsuarioCreado(usuario, password);
                 if (verification.existe) {
@@ -463,8 +463,8 @@ class SessionManager {
             }
             
         } catch (error) {
-            console.error('âŒ Error en registro:', error);
-            this.mostrarError('Error de conexiÃ³n. Verifica que el servidor estÃ© funcionando.');
+            console.error('Error en registro:', error);
+            this.mostrarError('Error de conexiÃ³n. Verifica que el servidor esté funcionando.');
             if (!botonRestaurado) {
                 this.mostrarCargando(false, 'registroBtn');
             }
@@ -479,7 +479,7 @@ class SessionManager {
 
     async verificarUsuarioCreado(usuario, password) {
         try {
-            console.log('ðŸ” Verificando si el usuario fue creado...');
+            console.log('Verificando si el usuario fue creado...');
             const response = await fetch(`${this.API_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -497,7 +497,7 @@ class SessionManager {
     }
 
     handleRegisterSuccess(usuario) {
-        this.mostrarExito('Â¡Registro exitoso! Ahora puedes iniciar sesiÃ³n.');
+        this.mostrarExito('¡Registro exitoso! Ahora puedes iniciar sesión.');
         
         setTimeout(() => {
             this.switchToLogin();
@@ -668,17 +668,17 @@ class SessionManager {
 }
 
 // ================= INICIALIZACIÃ“N =================
-console.log('ðŸŽ¯ INICIANDO SESSION MANAGER');
+console.log('INICIANDO SESSION MANAGER');
 const sessionManager = new SessionManager();
 
 // Debug completo
 console.log('='.repeat(50));
-console.log('ðŸ”§ INFORMACIÃ“N DE DEPURACIÃ“N');
+console.log('INFORMACIÃ“N DE DEPURACIÓN');
 console.log('='.repeat(50));
-console.log('ðŸ“ Hostname:', window.location.hostname);
-console.log('ðŸŒ URL Completa:', window.location.href);
-console.log('ðŸ”— API URL Final:', sessionManager.API_URL);
-console.log('ðŸ–¥ï¸  User Agent:', navigator.userAgent);
+console.log('Hostname:', window.location.hostname);
+console.log('URL Completa:', window.location.href);
+console.log('API URL Final:', sessionManager.API_URL);
+console.log('User Agent:', navigator.userAgent);
 console.log('='.repeat(50));
 
 window.sessionManager = sessionManager;
